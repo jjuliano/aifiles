@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+# macOS
+.DS_Store
+
+>>>>>>> b31b8e5 (initial commit)
+>>>>>>> 38a52c3 (Initial commit)
 # Logs
 logs
 *.log
@@ -6,6 +15,10 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 38a52c3 (Initial commit)
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -61,17 +74,37 @@ typings/
 
 # Optional REPL history
 .node_repl_history
+<<<<<<< HEAD
+=======
+=======
+# Dependency directories
+/node_modules/
+>>>>>>> b31b8e5 (initial commit)
+>>>>>>> 38a52c3 (Initial commit)
 
 # Output of 'npm pack'
 *.tgz
 
+<<<<<<< HEAD
 # Yarn Integrity file
 .yarn-integrity
 
+=======
+<<<<<<< HEAD
+# Yarn Integrity file
+.yarn-integrity
+
+=======
+>>>>>>> b31b8e5 (initial commit)
+>>>>>>> 38a52c3 (Initial commit)
 # dotenv environment variables file
 .env
 .env.test
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 38a52c3 (Initial commit)
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 
@@ -101,4 +134,22 @@ dist
 .dynamodb/
 
 # TernJS port file
+<<<<<<< HEAD
+=======
+=======
+# VSCode
+.vscode
+
+# Distribution
+dist
+
+# Eslint cache
+.eslintcache
+
+# Jetbrains IDE
+.idea
+
+# Tern
+>>>>>>> b31b8e5 (initial commit)
+>>>>>>> 38a52c3 (Initial commit)
 .tern-port

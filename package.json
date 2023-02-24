@@ -1,0 +1,67 @@
+{
+  "name": "aifiles",
+  "version": "1.0.0",
+  "description": "Organize your files with AI",
+  "keywords": [
+    "ai",
+    "file",
+    "organize",
+    "move"
+  ],
+  "license": "MIT",
+  "repository": "jjuliano/aifiles",
+  "author": "Joel Bryan Juliano (joelbryan.juliano@gmail.com)",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "bin": "dist/cli.mjs",
+  "scripts": {
+    "prepare": "simple-git-hooks",
+    "build": "pkgroll --minify",
+    "lint": "eslint --cache .",
+    "type-check": "tsc"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*.ts": "eslint --cache"
+  },
+  "devDependencies": {
+    "@clack/prompts": "^0.2.2",
+    "@pvtnbr/eslint-config": "^0.33.0",
+    "@types/ini": "^1.3.31",
+    "@types/inquirer": "^9.0.3",
+    "@types/mime": "^3.0.1",
+    "@types/node": "^18.13.0",
+    "@typescript-eslint/eslint-plugin": "^5.52.0",
+    "@typescript-eslint/parser": "^5.52.0",
+    "axios": "^1.3.4",
+    "cleye": "^1.3.2",
+    "eslint": "^8.34.0",
+    "eslint-config-standard-with-typescript": "^34.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.6.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "execa": "^7.0.0",
+    "file-type": "^18.2.1",
+    "filenamify": "^5.1.1",
+    "ini": "^3.0.1",
+    "kolorist": "^1.7.0",
+    "lint-staged": "^13.1.2",
+    "mime": "^3.0.0",
+    "music-metadata": "^7.13.0",
+    "node-fetch": "^3.3.0",
+    "openai": "^3.1.0",
+    "osx-tag": "^0.4.7",
+    "pkgroll": "^1.9.0",
+    "replicate-js": "github:nicholascelestin/replicate-js",
+    "simple-git-hooks": "^2.8.1",
+    "tempfile": "^5.0.0",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "pnpm": "^7.27.1"
+  }
+}

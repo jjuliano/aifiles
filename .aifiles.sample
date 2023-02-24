@@ -1,0 +1,63 @@
+# OpenAI API key
+OPENAI_API_KEY=
+
+# Replicate API key (for audio/video captioning)
+REPLICATE_API_KEY=
+
+# The JSON prompt file
+PROMPT_FILE=~/.aifiles.json
+
+# Whether to ask for custom context at the start of the filename
+PROMPT_FOR_CUSTOM_CONTEXT=true
+
+# Whether to ask for a revision number at the end of the filename
+PROMPT_FOR_REVISION_NUMBER=true
+
+# Maximum number of words to send to OpenAI for processing
+MAX_CONTENT_WORDS=50
+
+# Maximum number of multimedia data sources to send to OpenAI
+MAX_MEDIA_DATA_SOURCES=50
+
+# Whether to move or copy the file to the designated directory
+MOVE_FILE_OPERATION=true
+
+# Base directory to store files
+BASE_DIRECTORY=~
+
+# Directory for archived files
+ARCHIVES_DIRECTORY=Archives
+ARCHIVES_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_title}--{file_date_created}
+ARCHIVES_FILE_NAME_CASE=pascal
+# Example: If file_title = "Annual Report", file_date = "2022-02-24", file_category_1 = "Financials", file_category_2 = "Reports", and revision_number = 2, then the file name will be "Financials/Reports/AnnualReport--2022-02-24-v2.pdf"
+
+# Directory for documents
+DOCUMENT_DIRECTORY=Documents
+DOCUMENT_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_category_3}--{file_title}
+DOCUMENT_FILE_NAME_CASE=snake
+# Example: If file_title = "Project Plan", file_category_1 = "Projects", file_category_2 = "2022", file_category_3 = "Q1", and revision_number = 1, then the file name will be "Projects/2022/Q1--ProjectPlan-v1.docx"
+
+# Directory for music files
+MUSIC_DIRECTORY=Music
+MUSIC_FILENAME_FORMAT={music_artist}/{music_album}/{music_track_number}--{music_track_title}
+MUSIC_FILE_NAME_CASE=kebab
+# Example: If artist = "Pink Floyd", album = "The Wall", title = "Another Brick in the Wall", track_number = "2", and revision_number = 3, then the file name will be "Pink-Floyd/The-Wall/02--Another-Brick-in-the-Wall-v3.mp3"
+
+# Directory for other types of files
+OTHERS_DIRECTORY=Others
+OTHERS_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_title}
+OTHERS_FILE_NAME_CASE=pascal
+# Example: If file_title = "Meeting Notes", file_category_1 = "Business", file_category_2 = "2022", and revision_number = 2, then the file name will be "Business/2022/MeetingNotes-v2.txt"
+
+# Directory for pictures
+PICTURES_DIRECTORY=Pictures
+PICTURES_FILENAME_FORMAT={picture_date_taken}/{file_title}
+PICTURES_FILE_NAME_CASE=lower_snake
+# Example: If file_title = "Family Portrait", picture_date_taken = "2022", month = "January", day = "1", and revision_number = 1, then the file name will be "2022-January-01/family_portrait_v1.jpg"
+
+# Directory for videos
+VIDEOS_DIRECTORY=Videos
+VIDEOS_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_title}_{revision_number}
+VIDEOS_FILE_NAME_CASE=upper_snake
+# Example: If file_title = "Training Video", file_category_1 = "Business", file_category_2 = "Presentation", and revision_number = 1, then the file name will be "BUSINESS/PRESENTATION/TrainingVideo_1.mp4"
+
