@@ -1,10 +1,18 @@
+<div align="center">
+  <div>
+    <img src=".github/screencapture.gif" alt="AI Files"/>
+    <h1 align="center">AI Files</h1>
+  </div>
+	<p>A CLI that helps you organize and manage your files using AI.</p>
+	<a href="https://www.npmjs.com/package/aifiles"><img 
+src="https://img.shields.io/npm/v/aifiles" alt="Current version"></a>
+</div>
+
 # 🤖 AI Files
 
 A CLI that helps you organize and manage your files using AI.
 
 Organize audio, video, pictures, documents, archives, and other types of files.
-
-[![asciicast](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE.svg)](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE?npt:200&cols=200&speed=4&autoplay=1&loop=1)
 
 # Installation
 
