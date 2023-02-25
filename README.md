@@ -2,7 +2,7 @@
 
 AI Files is a Node.js app that helps you organize and manage your files using artificial intelligence. It can process audio, video, pictures, documents, archives, and other types of files.
 
-[![asciicast](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE.svg)](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE)
+[![asciicast](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE.svg?speed=4&theme=tango?autoplay=1?loop=1)](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE?speed=4&theme=tango?autoplay=1?loop=1?cols=100?rows=200)
 
 Installation
 
