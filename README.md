@@ -40,6 +40,15 @@ where filename is the name of the file you want to process.
 - Store your files in a designated directory and archive old files
 - On MacOS, it automatically tags and adds comments to the file
 
+# TODO
+
+- Select themed folder structure and curation, i.e. warez style, etc.
+- Abilty to pattern new folder categories with existing ones
+- Seemless cross-platform support
+- Configurable generic file pre & post-process actions per each file groups
+- Landing page 2.0
+- Bug fixes
+
 # Contributions
 
 Contributions are welcome! Feel free to open issues and pull requests on GitHub.
