@@ -1,17 +1,16 @@
-🤖 AI Files
+# 🤖 AI Files
 
 AI Files is a Node.js app that helps you organize and manage your files using artificial intelligence. It can process audio, video, pictures, documents, archives, and other types of files.
 
-<video autoplay loop controls style="max-width: 100%;">
-  <source src="https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![asciicast](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE.svg)](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE)
 
 Installation
 
 To install AI Files, simply run:
 
+```
 npm install aifiles
+```
 
 You will also need to install the following dependencies:
 - pandoc
@@ -20,9 +19,11 @@ You will also need to install the following dependencies:
 
 Usage
 
-To use AI Files, copy the .aifiles and .aifiles.json files to your home directory. Then, run:
+To use AI Files, copy the `.aifiles` and `.aifiles.json` files to your home directory. Then, run:
 
+```
 aifiles [filename]
+```
 
 where filename is the name of the file you want to process.
 
