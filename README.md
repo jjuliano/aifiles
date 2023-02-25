@@ -4,7 +4,7 @@ A CLI that helps you organize and manage your files using AI.
 
 It can process audio, video, pictures, documents, archives, and other types of files.
 
-[![asciicast](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE?npt:200&cols=200&speed=4&autoplay=1&loop=1)](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE?npt:200&cols=200&speed=4&autoplay=1&loop=1)
+[![asciicast](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE.svg?npt:200&cols=200&speed=4&autoplay=1&loop=1)](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE?npt:200&cols=200&speed=4&autoplay=1&loop=1)
 
 # Installation
 
