@@ -45,7 +45,7 @@ where filename is the name of the file you want to process.
 - Select themed folder structure and curation, i.e. warez style, etc.
 - Abilty to pattern new folder categories with existing ones
 - Seemless cross-platform support
-- Use ChatGPT model (only if it's free, I hope it's free! haha, I spend like $100 for this non-free AI plugin to work, I better have a very good ChatGPT explanation to explain $100 to my wife)
+- Use ChatGPT model
 - Configurable generic file pre & post-process actions per each file groups
 - Landing page 2.0
 - Bug fixes
