@@ -34,7 +34,7 @@ where filename is the name of the file you want to process.
 ## AI Files can:
 
 - Process audio, video, pictures, documents, archives, and other types of files
-- Automatically extract relevant information from your files using OpenAI's GPT-3 API
+- Automatically extract relevant information from your files using OpenAI.
 - Organize your files into categories and directories based on their content
 - Rename your files using a customizable naming convention
 - Store your files in a designated directory and archive old files
