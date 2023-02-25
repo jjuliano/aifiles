@@ -1,10 +1,12 @@
 # 🤖 AI Files
 
-AI Files is a Node.js app that helps you organize and manage your files using artificial intelligence. It can process audio, video, pictures, documents, archives, and other types of files.
+A CLI that helps you organize and manage your files using AI.
 
-[![asciicast](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE.svg?speed=4&theme=tango?autoplay=1?loop=1)](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE?speed=4&theme=tango?autoplay=1?loop=1?cols=100?rows=200)
+It can process audio, video, pictures, documents, archives, and other types of files.
 
-Installation
+[![asciicast](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE.svg=npt:225&cols=81)](https://asciinema.org/a/yDAxoLp1kS7MH1oBhXDcr6YQE=npt:225&cols=81)
+
+# Installation
 
 To install AI Files, simply run:
 
@@ -17,7 +19,7 @@ You will also need to install the following dependencies:
 - exiftool
 - pdftotext
 
-Usage
+# Usage
 
 To use AI Files, copy the `.aifiles` and `.aifiles.json` files to your home directory. Then, run:
 
@@ -27,9 +29,9 @@ aifiles [filename]
 
 where filename is the name of the file you want to process.
 
-Features
+# Features
 
-AI Files can:
+## AI Files can:
 
 - Process audio, video, pictures, documents, archives, and other types of files
 - Automatically extract relevant information from your files using OpenAI's GPT-3 API
@@ -38,11 +40,11 @@ AI Files can:
 - Store your files in a designated directory and archive old files
 - On MacOS, it automatically tags and adds comments to the file
 
-Contributions
+# Contributions
 
 Contributions are welcome! Feel free to open issues and pull requests on GitHub.
 
-License
+# License
 
 This project is licensed under the MIT License.
 
