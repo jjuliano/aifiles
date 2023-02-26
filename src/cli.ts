@@ -78,7 +78,7 @@ if (!token) {
 
       const s = spinner();
       s.start("The AI is analyzing your file");
-      const [message] = await generatePromptResponse(apiKey, prompt);
+      const message = await generatePromptResponse(apiKey, prompt);
       s.stop(`File analyzed!`);
 
       const promptObj = await parseJson(message);
@@ -223,8 +223,7 @@ if (!token) {
 
       success = true; // If there are no errors, set success to true and exit the while loop
     } catch (error) {
-      // @ts-ignore
-      outro(`${red("✖")} ${error.stack}`);
+      outro(`${red("✖")} ${error}`);
 
       const tryAgain = await select({
         message: "An error occurred. Do you want to try again?",

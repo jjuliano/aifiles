@@ -8,6 +8,8 @@
 src="https://img.shields.io/npm/v/aifiles" alt="Current version"></a>
 </div>
 
+⚠️ This app uses ChatGPT 🤖, which could raise privacy concerns. Please be cautious when sharing personal information.🔒
+
 # Installation
 
 To install AI Files, simply run:
@@ -20,11 +22,13 @@ You will also need to install the following dependencies:
 - pandoc
 - exiftool
 - pdftotext
+- in2csv
 
 # Usage
 
 To use AI Files, copy the `.aifiles` and `.aifiles.json` files to your home directory.
-Then ensure to set the OPENAI_API_KEY, and REPLICATE_API_KEY (for audio/video description)
+
+You would need to modify the ~/.aifiles and add your `OPENAI_API_KEY` and `REPLICATE_API_KEY` (for audio/video captioning).
 
 Then, run:
 
@@ -39,7 +43,7 @@ where filename is the name of the file you want to process.
 ## AI Files can:
 
 - Organize audio, video, pictures, documents, archives, and other types of files
-- Automatically extract relevant information from your files using OpenAI.
+- Automatically extract relevant information from your files using OpenAI ChatGPT.
 - Automatically add tag and comments to the file
 - Organize your files into categories and directories based on their content
 - Rename your files using a customizable naming convention
@@ -47,12 +51,12 @@ where filename is the name of the file you want to process.
 
 # TODO
 
+- Untested on Windows. (It uses `cat` to view text files.)
 - Select themed folder structure and curation, i.e. warez style, etc.
 - Abilty to pattern new folder categories with existing ones
 - Seemless cross-platform support
-- Use ChatGPT model
-- Configurable generic file pre & post-process actions per each file groups
 - Landing page 2.0
+- Fix exiftool usage
 - Bug fixes
 
 # Contributions
