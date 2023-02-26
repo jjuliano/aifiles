@@ -217,7 +217,7 @@ if (!token) {
           await fs.rename(resolvePath(target), `${newFile}`);
         }
 
-        await addTagsToFile(newFile, promptObj.internal_file_tags.split(","));
+        await addTagsToFile(newFile, promptObj.internal_file_tags);
         await addCommentsToFile(newFile, promptObj.internal_file_summary);
       }
 

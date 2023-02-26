@@ -10,6 +10,8 @@ import { confirm, note, text } from '@clack/prompts'
 import { bgLightRed, lightGreen, reset, white } from 'kolorist'
 import Replicate from 'replicate-js'
 import { ChatGPTAPI } from 'chatgpt'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const tag = require('osx-tag')
 
 async function makePictureCaption (
   client: Replicate,
@@ -595,29 +597,14 @@ export const generatePromptResponse = async (
 
 export async function addTagsToFile (
   file: string,
-  tags: string[]
+  tagString: string
 ): Promise<void> {
-  const platform = process.platform
+  const tags = tagString.split(",") || []
   const filePath = resolvePath(<string>file)
 
-  switch (platform) {
-    case 'darwin':
-      // eslint-disable-next-line @typescript-eslint/no-var-requires,no-case-declarations
-      const tag = require('osx-tag')
-
-      tag.addTags(filePath, tags, (err: Error) => {
-        if (err) throw err
-      })
-      break
-    case 'win32':
-      // TODO
-      break
-    case 'linux':
-      // TODO
-      break
-    default:
-      throw new Error(`Unsupported platform: ${platform}`)
-  }
+  tag.addTags(filePath, tags, (err: Error) => {
+    if (err) throw err
+  })
 }
 
 export async function addCommentsToFile (
