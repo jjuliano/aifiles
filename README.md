@@ -51,6 +51,9 @@ where filename is the name of the file you want to process.
 
 # TODO
 
+- Native file info extraction (no external binary deps.)
+- Local LLMs.
+- Easy wizard configurator upon first run.
 - Untested on Windows. (It uses `cat` to view text files.)
 - Select themed folder structure and curation, i.e. warez style, etc.
 - Abilty to pattern new folder categories with existing ones
