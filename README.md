@@ -26,7 +26,7 @@ You will also need to install the following dependencies:
 
 Copy-and-paste version:
 ```
-brew install pandoc exiftooll poppler in2csv
+brew install pandoc exiftool poppler csvkit
 ```
 
 # Usage
