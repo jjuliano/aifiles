@@ -21,8 +21,13 @@ npm install aifiles
 You will also need to install the following dependencies:
 - pandoc
 - exiftool
-- pdftotext
-- in2csv
+- pdftotext (included in poppler)
+- in2csv (included in csvkit)
+
+Copy-and-paste version:
+```
+brew install pandoc exiftooll poppler in2csv
+```
 
 # Usage
 
