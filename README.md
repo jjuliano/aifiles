@@ -33,6 +33,14 @@ brew install pandoc exiftool poppler csvkit
 
 To use AI Files, copy the `.aifiles` and `.aifiles.json` files to your home directory.
 
+```
+mkdir git
+cd ~/git
+git clone https://github.com/jjuliano/aifiles.git
+cp aifiles/.aifiles.sample ~/.aifiles
+cp aifiles/.aifiles.json ~/.aifiles.json
+```
+
 You would need to modify the ~/.aifiles and add your `OPENAI_API_KEY` and `REPLICATE_API_KEY` (for audio/video captioning).
 
 Then, run:
