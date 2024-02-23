@@ -59,21 +59,12 @@ where filename is the name of the file you want to process.
 - Automatically extract relevant information from your files using OpenAI ChatGPT.
 - Automatically add tag and comments to the file
 - Organize your files into categories and directories based on their content
-- Rename your files using a customizable naming convention
+- Rename your files using a [customizable naming convention](https://github.com/jjuliano/aifiles/blob/main/.aifiles.sample#L28)
 - Store your files in a designated directory
 
 # TODO
 
-- Native file info extraction (no external binary deps.)
-- Local LLMs.
-- Easy wizard configurator upon first run.
-- Untested on Windows. (It uses `cat` to view text files.)
-- Select themed folder structure and curation, i.e. warez style, etc.
-- Abilty to pattern new folder categories with existing ones
-- Seemless cross-platform support
-- Landing page 2.0
-- Fix exiftool usage
-- Bug fixes
+- [See issue #9](https://github.com/jjuliano/aifiles/issues/9)
 
 # Contributions
 
