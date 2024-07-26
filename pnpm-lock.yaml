@@ -13,8 +13,8 @@ importers:
         version: 9.6.0
     devDependencies:
       '@clack/prompts':
-        specifier: ^0.2.2
-        version: 0.2.2
+        specifier: ^0.7.0
+        version: 0.7.0
       '@pvtnbr/eslint-config':
         specifier: ^0.33.0
         version: 0.33.0(eslint@8.34.0)(typescript@4.9.5)
@@ -120,11 +120,13 @@ packages:
     resolution: {integrity: sha512-u7stbOuYjaPezCuLj29hNW1v64M2Md2qupEKP1fHc7WdOA3DgLh37suiSrZYY7haUB7iBeQZ9P1uiRF359do3g==}
     engines: {node: '>=6.9.0'}
 
-  '@clack/core@0.1.7':
-    resolution: {integrity: sha512-hyrb8/QlcC2vJO5ZL19/Fl3YHwfPK2o2TuW1zczzFO7lBUQWePGHhJu2wc6AJOjtpbyppylCLWnFFY3sGfLJSg==}
+  '@clack/core@0.3.4':
+    resolution: {integrity: sha512-H4hxZDXgHtWTwV3RAVenqcC4VbJZNegbBjlPvzOzCouXtS2y3sDvlO3IsbrPNWuLWPPlYVYPghQdSF64683Ldw==}
 
-  '@clack/prompts@0.2.2':
-    resolution: {integrity: sha512-Jtxq+sLkn3/4swLzGUvhKkgcHYh1XWgwq90RWY3KPWegSI4Aun4WDlHpQakIIeEJSg96Ip+keTJt3g02lUmKWw==}
+  '@clack/prompts@0.7.0':
+    resolution: {integrity: sha512-0MhX9/B4iL6Re04jPrttDm+BsP8y6mS7byuv0BvXgdXhbV5PdlsHt55dvNsuBCPZ7xq1oTAOOuotR9NFbQyMSA==}
+    bundledDependencies:
+      - is-unicode-supported
 
   '@dqbd/tiktoken@0.4.0':
     resolution: {integrity: sha512-iaHgmwKAOqowBFZKxelyszoeGLoNw62eOULcmyme1aA1Ymr3JgYl0V7jwpuUm7fksalycZajx3loFn9TRUaviw==}
@@ -2451,14 +2453,14 @@ snapshots:
       chalk: 2.4.2
       js-tokens: 4.0.0
 
-  '@clack/core@0.1.7':
+  '@clack/core@0.3.4':
     dependencies:
       picocolors: 1.0.0
       sisteransi: 1.0.5
 
-  '@clack/prompts@0.2.2':
+  '@clack/prompts@0.7.0':
     dependencies:
-      '@clack/core': 0.1.7
+      '@clack/core': 0.3.4
       picocolors: 1.0.0
       sisteransi: 1.0.5
 

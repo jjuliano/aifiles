@@ -30,7 +30,7 @@
     "*.ts": "eslint --cache"
   },
   "devDependencies": {
-    "@clack/prompts": "^0.2.2",
+    "@clack/prompts": "^0.7.0",
     "@pvtnbr/eslint-config": "^0.33.0",
     "@types/ini": "^1.3.31",
     "@types/inquirer": "^9.0.3",
