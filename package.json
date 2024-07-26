@@ -63,6 +63,6 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "pnpm": "^7.27.1"
+    "pnpm": "^9.6.0"
   }
 }
