@@ -51,7 +51,7 @@
     "filenamify": "^5.1.1",
     "ini": "^3.0.1",
     "kolorist": "^1.7.0",
-    "lint-staged": "^13.1.2",
+    "lint-staged": "^15.2.7",
     "mime": "^3.0.0",
     "music-metadata": "^7.13.0",
     "node-fetch": "^3.3.0",
