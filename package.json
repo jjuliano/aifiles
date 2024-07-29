@@ -48,7 +48,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "execa": "^7.0.0",
     "file-type": "^18.2.1",
-    "filenamify": "^5.1.1",
+    "filenamify": "^6.0.0",
     "ini": "^3.0.1",
     "kolorist": "^1.7.0",
     "lint-staged": "^13.1.2",
