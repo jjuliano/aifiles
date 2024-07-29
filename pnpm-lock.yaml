@@ -74,7 +74,7 @@ importers:
         version: 3.0.1
       kolorist:
         specifier: ^1.7.0
-        version: 1.7.0
+        version: 1.8.0
       lint-staged:
         specifier: ^13.1.2
         version: 13.1.2
@@ -1556,8 +1556,8 @@ packages:
   keyv@4.5.3:
     resolution: {integrity: sha512-QCiSav9WaX1PgETJ+SpNnx2PRRapJ/oRSXM4VO5OGYGSjrxbKPVFVhB3l2OCbLCk329N8qyAtsJjSjvVBWzEug==}
 
-  kolorist@1.7.0:
-    resolution: {integrity: sha512-ymToLHqL02udwVdbkowNpzjFd6UzozMtshPQKVi5k1EjKRqKqBrOnE9QbLEb0/pV76SAiIT13hdL8R6suc+f3g==}
+  kolorist@1.8.0:
+    resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -4043,7 +4043,7 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  kolorist@1.7.0: {}
+  kolorist@1.8.0: {}
 
   levn@0.4.1:
     dependencies:
