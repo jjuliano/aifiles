@@ -98,7 +98,7 @@ importers:
         version: git+https://git@github.com:nicholascelestin/replicate-js.git#02a5c8558230d56b800cb6865e7ecc37c153da59
       simple-git-hooks:
         specifier: ^2.8.1
-        version: 2.8.1
+        version: 2.11.1
       tempfile:
         specifier: ^5.0.0
         version: 5.0.0
@@ -2183,8 +2183,8 @@ packages:
   signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
 
-  simple-git-hooks@2.8.1:
-    resolution: {integrity: sha512-DYpcVR1AGtSfFUNzlBdHrQGPsOhuuEJ/FkmPOOlFysP60AHd3nsEpkGq/QEOdtUyT1Qhk7w9oLmFoMG+75BDog==}
+  simple-git-hooks@2.11.1:
+    resolution: {integrity: sha512-tgqwPUMDcNDhuf1Xf6KTUsyeqGdgKMhzaH4PAZZuzguOgTl5uuyeYe/8mWgAr6IBxB5V06uqEf6Dy37gIWDtDg==}
     hasBin: true
 
   sisteransi@1.0.5:
@@ -4755,7 +4755,7 @@ snapshots:
 
   signal-exit@3.0.7: {}
 
-  simple-git-hooks@2.8.1: {}
+  simple-git-hooks@2.11.1: {}
 
   sisteransi@1.0.5: {}
 
