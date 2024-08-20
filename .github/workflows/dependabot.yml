@@ -1,4 +1,5 @@
-name: Dependabot auto-merge
+name: Auto Merge Dependabot PRs
+
 on:
   pull_request:
     types:
@@ -7,26 +8,25 @@ on:
       - reopened
       - ready_for_review
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  dependabot:
+  auto-merge:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
     steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js (if your project uses Node.js)
+        uses: actions/setup-node@v3
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Enable auto-merge for Dependabot PRs
-        if: contains(steps.metadata.outputs.dependency-names, 'my-dependency') && steps.metadata.outputs.update-type == 'version-update:semver-patch'
-        run: gh pr merge --auto --merge "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          node-version: '16' # Or the version your project uses
+
+      - name: Install dependencies
+        run: npm install # Adapt this step to your project's dependency manager
+
+      - name: Run tests
+        run: npm test # Replace with your test command
+
       - name: Merge Dependabot PR
         uses: actions/github-script@v6
         with:
@@ -42,5 +42,3 @@ jobs:
             } else {
               console.log('PR not merged. Conditions not met.');
             }
-
-
