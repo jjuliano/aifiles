@@ -23,7 +23,7 @@ importers:
         version: 4.1.1
       '@types/inquirer':
         specifier: ^9.0.3
-        version: 9.0.3
+        version: 9.0.7
       '@types/mime':
         specifier: ^4.0.0
         version: 4.0.0
@@ -421,8 +421,8 @@ packages:
   '@types/ini@4.1.1':
     resolution: {integrity: sha512-MIyNUZipBTbyUNnhvuXJTY7B6qNI78meck9Jbv3wk0OgNwRyOOVEKDutAkOs1snB/tx0FafyR6/SN4Ps0hZPeg==}
 
-  '@types/inquirer@9.0.3':
-    resolution: {integrity: sha512-CzNkWqQftcmk2jaCWdBTf9Sm7xSw4rkI1zpU/Udw3HX5//adEZUIm9STtoRP1qgWj0CWQtJ9UTvqmO2NNjhMJw==}
+  '@types/inquirer@9.0.7':
+    resolution: {integrity: sha512-Q0zyBupO6NxGRZut/JdmqYKOnN95Eg5V8Csg3PGKkP+FnvsUZx1jAyK7fztIszxxMuoBA6E3KXWvdZVXIpx60g==}
 
   '@types/json-schema@7.0.11':
     resolution: {integrity: sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==}
@@ -3222,7 +3222,7 @@ snapshots:
 
   '@types/ini@4.1.1': {}
 
-  '@types/inquirer@9.0.3':
+  '@types/inquirer@9.0.7':
     dependencies:
       '@types/through': 0.0.30
       rxjs: 7.8.0
