@@ -21,3 +21,20 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Merge Dependabot PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (pr.user.login === 'dependabot[bot]' && pr.state === 'open' && pr.mergeable) {
+              const merge = await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+              });
+              console.log('PR merged:', merge.data.merged);
+            } else {
+              console.log('PR not merged. Conditions not met.');
+            }
+
+
