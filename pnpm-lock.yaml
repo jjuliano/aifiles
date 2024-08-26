@@ -89,7 +89,7 @@ importers:
         version: 3.3.2
       osx-tag:
         specifier: ^0.4.7
-        version: 0.4.7
+        version: 0.4.9
       pkgroll:
         specifier: ^1.9.0
         version: 1.9.0(typescript@4.9.5)
@@ -2093,8 +2093,8 @@ packages:
     resolution: {integrity: sha512-qxh+Xgy1qHhrgW4XnXu5JUxMmRNdQXDEeIZLGXpapOi96rRCocXn498L+y2P7t6NJXFK8e3Shv2tu0dC/HF/3g==}
     engines: {node: '>=10'}
 
-  nan@2.17.0:
-    resolution: {integrity: sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==}
+  nan@2.20.0:
+    resolution: {integrity: sha512-bk3gXBZDGILuuo/6sKtr0DQmSThYHLtNCdSdXk9YkxD/jK6X2vmCyyXBBxyqZ4XcnzTyYEAThfX3DCEnLf6igw==}
 
   natural-compare-lite@1.4.0:
     resolution: {integrity: sha512-Tj+HTDSJJKaZnfiuw+iaF9skdPpTo2GtEly5JHnWV/hfv2Qj/9RKsGISQtLh2ox3l5EAGw487hnBee0sIJ6v2g==}
@@ -2198,9 +2198,9 @@ packages:
     resolution: {integrity: sha512-74RlY5FCnhq4jRxVUPKDaRwrVNXMqsGsiW6AJw4XK8hmtm10wC0ypZBLw5IIp85NZMr91+qd1RvvENwg7jjRFw==}
     engines: {node: '>= 0.8.0'}
 
-  osx-tag@0.4.7:
-    resolution: {integrity: sha512-crz/f0TpnH8jDfNhEejZ39KzaFZ65dgSTurnf0jh3sKIAvfMZR1GxJGBlccv7GPtAfehv5b2lO5l2TQb968kQQ==}
-    engines: {node: '>=12'}
+  osx-tag@0.4.9:
+    resolution: {integrity: sha512-5bHYZbZ1dKynISuxYiz3jBAkEqp5pkrj6wXEgzNBnqXV+31v1lB5DpqM8pcc9xfAGJ4ybfAWIRSBvFFqYBtuZA==}
+    engines: {node: '>=16'}
 
   p-limit@2.3.0:
     resolution: {integrity: sha512-//88mFWSJx8lxCzwdAABTJL2MyWB12+eIY7MDL2SqLmAkeKU9qxRvWuSyTjm3FUmpBEMuFfckAIqEaVGUDxb6w==}
@@ -5271,7 +5271,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  nan@2.17.0: {}
+  nan@2.20.0: {}
 
   natural-compare-lite@1.4.0: {}
 
@@ -5391,9 +5391,9 @@ snapshots:
       type-check: 0.4.0
       word-wrap: 1.2.3
 
-  osx-tag@0.4.7:
+  osx-tag@0.4.9:
     dependencies:
-      nan: 2.17.0
+      nan: 2.20.0
 
   p-limit@2.3.0:
     dependencies:
