@@ -10,7 +10,7 @@ importers:
     dependencies:
       pnpm:
         specifier: ^9.6.0
-        version: 9.7.1
+        version: 9.9.0
     devDependencies:
       '@clack/prompts':
         specifier: ^0.7.0
@@ -2320,8 +2320,8 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
-  pnpm@9.7.1:
-    resolution: {integrity: sha512-+vNEry1splxMXIwiJOp3qBpeiFnLxOBrFRHdzi8BUVEkMd0Z5q/zHyxqj18qztm9InPh/tfdTeGGiYQFnSxCRw==}
+  pnpm@9.9.0:
+    resolution: {integrity: sha512-YMGKzROL/2ldM5vmrRP36TbupnRWYNTMSndtUkfFQNDt7hpWNpXBg6ZuuRfviPK0/rH8JfMqetytx6rzQ46ZwQ==}
     engines: {node: '>=18.12'}
     hasBin: true
 
@@ -5494,7 +5494,7 @@ snapshots:
 
   pluralize@8.0.0: {}
 
-  pnpm@9.7.1: {}
+  pnpm@9.9.0: {}
 
   possible-typed-array-names@1.0.0: {}
 
