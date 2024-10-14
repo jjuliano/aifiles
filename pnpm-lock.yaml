@@ -10,7 +10,7 @@ importers:
     dependencies:
       pnpm:
         specifier: ^9.6.0
-        version: 9.7.1
+        version: 9.12.1
     devDependencies:
       '@clack/prompts':
         specifier: ^0.7.0
@@ -308,6 +308,7 @@ packages:
 
   '@pvtnbr/eslint-config@0.38.0':
     resolution: {integrity: sha512-nqMkq6vI00uhpqdp8RO9gq9fLa/5Vq0ubadcJWQ3NaZyDjGqj6r9iH5KFe03UQBZbx0cq1oEZXE2ngRHbt5VqA==}
+    deprecated: Package renamed to 'lintroll'
     peerDependencies:
       eslint: ^8.0.0
 
@@ -1297,6 +1298,7 @@ packages:
   eslint@8.34.0:
     resolution: {integrity: sha512-1Z8iFsucw+7kSqXNZVslXS8Ioa4u2KM7GPwuKtkTFAqZ/cHMcEaR+1+Br0wLlot49cNxIiZk5wp8EAbPcYZxTg==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@9.4.1:
@@ -2320,8 +2322,8 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
-  pnpm@9.7.1:
-    resolution: {integrity: sha512-+vNEry1splxMXIwiJOp3qBpeiFnLxOBrFRHdzi8BUVEkMd0Z5q/zHyxqj18qztm9InPh/tfdTeGGiYQFnSxCRw==}
+  pnpm@9.12.1:
+    resolution: {integrity: sha512-5aflKkGDoC1ZMQV/eg2/+dXpzjFh4z+miuOSElt5KCqKikcKUd/IoO2GIhRC6y+1cBmwmQ7ST6tRm/DhvFzPxA==}
     engines: {node: '>=18.12'}
     hasBin: true
 
@@ -5494,7 +5496,7 @@ snapshots:
 
   pluralize@8.0.0: {}
 
-  pnpm@9.7.1: {}
+  pnpm@9.12.1: {}
 
   possible-typed-array-names@1.0.0: {}
 
