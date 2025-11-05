@@ -1,0 +1,82 @@
+[
+  {
+    "id": "work-documents",
+    "name": "Work Documents",
+    "description": "Organized work-related documents by project and date",
+    "basePath": "~/Documents/Work",
+    "namingStructure": "{file_category_1}/{file_category_2}/{file_title}--{file_date_created}",
+    "fileNameCase": "snake",
+    "autoOrganize": false,
+    "watchForChanges": true
+  },
+  {
+    "id": "personal-photos",
+    "name": "Personal Photos",
+    "description": "Photos organized by date and event",
+    "basePath": "~/Pictures/Personal",
+    "namingStructure": "{picture_date_taken}/{file_title}",
+    "fileNameCase": "lower_snake",
+    "autoOrganize": true,
+    "watchForChanges": true
+  },
+  {
+    "id": "project-files",
+    "name": "Project Files",
+    "description": "Project files organized by category and version",
+    "basePath": "~/Projects",
+    "namingStructure": "{file_category_1}/{file_category_2}/{file_title}",
+    "fileNameCase": "kebab",
+    "autoOrganize": false,
+    "watchForChanges": false
+  },
+  {
+    "id": "downloads-organized",
+    "name": "Downloads (Auto-organize)",
+    "description": "Automatically organize downloads folder",
+    "basePath": "~/Downloads/Organized",
+    "namingStructure": "{file_category_1}/{file_title}",
+    "fileNameCase": "pascal",
+    "autoOrganize": true,
+    "watchForChanges": true
+  },
+  {
+    "id": "music-library",
+    "name": "Music Library",
+    "description": "Music collection organized by artist and album",
+    "basePath": "~/Music/Library",
+    "namingStructure": "{music_artist}/{music_album}/{music_track_number}--{music_track_title}",
+    "fileNameCase": "kebab",
+    "autoOrganize": true,
+    "watchForChanges": true
+  },
+  {
+    "id": "video-archive",
+    "name": "Video Archive",
+    "description": "Videos organized by category and date",
+    "basePath": "~/Videos/Archive",
+    "namingStructure": "{file_category_1}/{file_category_2}/{file_title}",
+    "fileNameCase": "upper_snake",
+    "autoOrganize": false,
+    "watchForChanges": true
+  },
+  {
+    "id": "receipts-bills",
+    "name": "Receipts & Bills",
+    "description": "Financial documents organized by type and date",
+    "basePath": "~/Documents/Finance",
+    "namingStructure": "{file_category_1}/{file_date_created}/{file_title}",
+    "fileNameCase": "snake",
+    "autoOrganize": false,
+    "watchForChanges": true
+  },
+  {
+    "id": "screenshots",
+    "name": "Screenshots",
+    "description": "Screenshots organized by date",
+    "basePath": "~/Pictures/Screenshots",
+    "namingStructure": "{picture_date_taken}/{file_title}",
+    "fileNameCase": "lower_snake",
+    "autoOrganize": true,
+    "watchForChanges": true
+  }
+]

@@ -1,4 +1,8 @@
 {
+    "internal_file_title": "A descriptive title for the file based on its content.",
+    "internal_file_category": "The primary category that best describes the file content.",
+    "internal_file_summary": "A brief summary or abstract of the contents of the file.",
+    "internal_file_tags": "A list of keywords or tags associated with the file.",
     "archive_access_date": "The date and time when the archive file was last accessed.",
     "archive_checksum": "The checksum or hash value of the archive file for verifying its integrity.",
     "archive_comments": "Any comments or notes related to the archive file.",

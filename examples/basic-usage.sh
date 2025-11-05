@@ -1,0 +1,152 @@
+#!/bin/bash
+# AIFiles - Basic Usage Examples
+# This script demonstrates common usage patterns
+
+set -e
+
+echo "🤖 AIFiles - Basic Usage Examples"
+echo "=================================="
+echo ""
+
+# Example 1: Organize a single file
+echo "📄 Example 1: Organize a single document"
+echo "----------------------------------------"
+echo "# Create a test document"
+echo 'echo "Q4 2024 Financial Report" > ~/test-report.txt'
+echo ""
+echo "# Organize it with AIFiles"
+echo "aifiles ~/test-report.txt"
+echo ""
+read -p "Press Enter to continue..."
+echo ""
+
+# Example 2: Organize an image
+echo "🖼️  Example 2: Organize an image with AI vision"
+echo "----------------------------------------------"
+echo "# AI will analyze the image content"
+echo "aifiles ~/Pictures/vacation-photo.jpg"
+echo ""
+read -p "Press Enter to continue..."
+echo ""
+
+# Example 3: Organize multiple files in a loop
+echo "📚 Example 3: Batch organize multiple files"
+echo "------------------------------------------"
+echo "# Organize all PDFs in Downloads folder"
+echo 'for file in ~/Downloads/*.pdf; do'
+echo '  aifiles "$file"'
+echo 'done'
+echo ""
+read -p "Press Enter to continue..."
+echo ""
+
+# Example 4: Using with different providers
+echo "🔄 Example 4: Switch between AI providers"
+echo "----------------------------------------"
+echo ""
+echo "# Using OpenAI (best quality)"
+echo "export LLM_PROVIDER=openai"
+echo "aifiles document.pdf"
+echo ""
+echo "# Using Ollama (local, private)"
+echo "export LLM_PROVIDER=ollama"
+echo "aifiles document.pdf"
+echo ""
+read -p "Press Enter to continue..."
+echo ""
+
+# Example 5: Setup wizard
+echo "🧙 Example 5: Run interactive setup"
+echo "----------------------------------"
+echo "aifiles-setup"
+echo ""
+echo "This wizard will:"
+echo "  - Check system dependencies"
+echo "  - Help you choose an AI provider"
+echo "  - Configure API keys"
+echo "  - Set up directories"
+echo ""
+read -p "Press Enter to continue..."
+echo ""
+
+# Example 6: Template management
+echo "📁 Example 6: Manage folder templates"
+echo "------------------------------------"
+echo ""
+echo "# List all templates"
+echo "aifiles-templates list"
+echo ""
+echo "# Add a new template (interactive)"
+echo "aifiles-templates add"
+echo ""
+echo "# Enable watching for a template"
+echo "aifiles-templates enable work-documents"
+echo ""
+read -p "Press Enter to continue..."
+echo ""
+
+# Example 7: File manager interface
+echo "📋 Example 7: Browse and manage organized files"
+echo "----------------------------------------------"
+echo ""
+echo "# Browse all organized files"
+echo "aifiles filemanager"
+echo ""
+echo "# Search files by title or category"
+echo "# (Interactive search in the history interface)"
+echo ""
+read -p "Press Enter to continue..."
+echo ""
+
+# Example 8: Common file types
+echo "📋 Example 8: Organize different file types"
+echo "------------------------------------------"
+echo ""
+echo "# Documents (uses text analysis)"
+echo "aifiles contract.pdf"
+echo "aifiles report.docx"
+echo "aifiles data.xlsx"
+echo ""
+echo "# Images (uses AI vision)"
+echo "aifiles photo.jpg"
+echo "aifiles screenshot.png"
+echo ""
+echo "# Music (uses metadata)"
+echo "aifiles song.mp3"
+echo ""
+echo "# Videos (uses metadata + optional vision)"
+echo "aifiles clip.mp4"
+echo ""
+echo "# Archives (uses metadata)"
+echo "aifiles backup.zip"
+echo ""
+read -p "Press Enter to continue..."
+echo ""
+
+# Tips
+echo "💡 Tips & Best Practices"
+echo "========================"
+echo ""
+echo "1. Start with setup wizard:"
+echo "   aifiles-setup"
+echo ""
+echo "2. Create templates for common workflows:"
+echo "   aifiles-templates add"
+echo ""
+echo "3. Enable file watching for automated organization:"
+echo "   - Start watch daemon: aifiles watch"
+echo "   - Or enable via CLI: aifiles-templates enable <template-id>"
+echo ""
+echo "4. Use local LLMs for privacy:"
+echo "   LLM_PROVIDER=ollama"
+echo ""
+echo "5. Check the documentation:"
+echo "   - Quick Start: QUICKSTART.md"
+echo "   - Full Guide: README.md"
+echo "   - Testing: TESTING.md"
+echo ""
+
+echo "✅ Examples complete!"
+echo ""
+echo "To actually run these commands, execute them individually"
+echo "or modify this script to uncomment the commands you want."

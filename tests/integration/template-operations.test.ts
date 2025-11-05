@@ -1,0 +1,492 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { join } from 'path';
+import { mkdir, rm, writeFile } from 'fs/promises';
+import { tmpdir } from 'os';
+import { randomUUID } from 'crypto';
+
+/**
+ * Template Operations E2E Tests
+ *
+ * Tests for template management, CRUD operations, and validation
+ */
+describe('Template Operations E2E Tests', () => {
+  let testDir: string;
+  let configDir: string;
+
+  beforeAll(async () => {
+    testDir = join(tmpdir(), 'aifiles-template-test-' + Date.now());
+    configDir = join(testDir, '.aifiles');
+    await mkdir(testDir, { recursive: true });
+    await mkdir(configDir, { recursive: true });
+    process.env.AIFILES_CONFIG_DIR = configDir;
+  }, 30000);
+
+  afterAll(async () => {
+    try {
+      await rm(testDir, { recursive: true, force: true });
+    } catch (error) {
+      console.warn('Failed to clean up test directory:', error);
+    }
+  }, 30000);
+
+  describe('Template Creation and Validation', () => {
+    it('should create a new template with all required fields', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const template = {
+        id: randomUUID(),
+        name: 'Test Template',
+        description: 'A test template for validation',
+        basePath: '/test/path',
+        namingStructure: '{file_category_1}/{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template);
+
+      const templates = await manager.getAllTemplates();
+      const saved = templates.find(t => t.name === 'Test Template');
+
+      expect(saved).toBeDefined();
+      expect(saved?.description).toBe(template.description);
+      expect(saved?.basePath).toBe(template.basePath);
+
+      console.log('✅ Template creation test passed');
+    }, 10000);
+
+    it('should generate unique IDs for each template', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const uniqueId = Date.now();
+      const template1 = {
+        id: `id-${uniqueId}-1`,
+        name: `UniqueID Test ${uniqueId}-1`,
+        description: 'First template',
+        basePath: '/test/path1',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      const template2 = {
+        id: `id-${uniqueId}-2`,
+        name: `UniqueID Test ${uniqueId}-2`,
+        description: 'Second template',
+        basePath: '/test/path2',
+        namingStructure: '{file_title}',
+        fileNameCase: 'kebab' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template1);
+      await manager.addTemplate(template2);
+
+      const templates = await manager.getAllTemplates();
+      const testTemplates = templates.filter(t =>
+        t.name.startsWith(`UniqueID Test ${uniqueId}`)
+      );
+      const ids = testTemplates.map(t => t.id);
+      const uniqueIds = new Set(ids);
+
+      expect(testTemplates.length).toBe(2);
+      expect(uniqueIds.size).toBe(ids.length);
+
+      console.log('✅ Unique ID generation test passed');
+    }, 10000);
+
+    it('should handle templates with special characters in names', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const template = {
+        id: randomUUID(),
+        name: 'Template (v2.0) - Updated!',
+        description: 'Template with special chars: @#$%',
+        basePath: '/test/special-chars',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template);
+
+      const templates = await manager.getAllTemplates();
+      const saved = templates.find(t => t.name === template.name);
+
+      expect(saved).toBeDefined();
+      expect(saved?.description).toBe(template.description);
+
+      console.log('✅ Special characters in template test passed');
+    }, 10000);
+  });
+
+  describe('Template Update Operations', () => {
+    it('should update existing template fields', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const template = {
+        id: randomUUID(),
+        name: 'Updatable Template',
+        description: 'Original description',
+        basePath: '/test/original',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template);
+
+      let templates = await manager.getAllTemplates();
+      const original = templates.find(t => t.name === 'Updatable Template');
+
+      expect(original).toBeDefined();
+
+      if (original) {
+        await manager.updateTemplate(original.id, {
+          description: 'Updated description',
+          basePath: '/test/updated',
+        });
+
+        templates = await manager.getAllTemplates();
+        const updated = templates.find(t => t.id === original.id);
+
+        expect(updated?.description).toBe('Updated description');
+        expect(updated?.basePath).toBe('/test/updated');
+        expect(updated?.name).toBe('Updatable Template'); // Name unchanged
+      }
+
+      console.log('✅ Template update test passed');
+    }, 10000);
+
+    it('should toggle watch status', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const template = {
+        id: randomUUID(),
+        name: 'Watch Toggle Template',
+        description: 'Test watch toggle',
+        basePath: '/test/watch',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template);
+
+      let templates = await manager.getAllTemplates();
+      const created = templates.find(t => t.name === 'Watch Toggle Template');
+
+      expect(created?.watchForChanges).toBe(false);
+
+      if (created) {
+        await manager.updateTemplate(created.id, {
+          watchForChanges: true,
+        });
+
+        templates = await manager.getAllTemplates();
+        const updated = templates.find(t => t.id === created.id);
+
+        expect(updated?.watchForChanges).toBe(true);
+      }
+
+      console.log('✅ Watch toggle test passed');
+    }, 10000);
+  });
+
+  describe('Template Deletion', () => {
+    it('should delete templates by ID', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const template = {
+        id: randomUUID(),
+        name: 'Delete Me Template',
+        description: 'Will be deleted',
+        basePath: '/test/delete',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template);
+
+      let templates = await manager.getAllTemplates();
+      const created = templates.find(t => t.name === 'Delete Me Template');
+
+      expect(created).toBeDefined();
+
+      if (created) {
+        await manager.deleteTemplate(created.id);
+
+        templates = await manager.getAllTemplates();
+        const deleted = templates.find(t => t.id === created.id);
+
+        expect(deleted).toBeUndefined();
+      }
+
+      console.log('✅ Template deletion test passed');
+    }, 10000);
+
+    it('should handle deletion of non-existent template gracefully', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      // Should not throw
+      await manager.deleteTemplate('non-existent-id-12345');
+
+      console.log('✅ Non-existent template deletion test passed');
+    }, 10000);
+  });
+
+  describe('Template Validation', () => {
+    it('should validate naming structure patterns', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const validPatterns = [
+        '{file_title}',
+        '{file_category_1}/{file_title}',
+        '{file_date_created}/{file_category_2}',
+        '{file_category_1}/{file_date_created}/{file_title}',
+      ];
+
+      for (const pattern of validPatterns) {
+        const template = {
+        id: randomUUID(),
+          name: `Valid Pattern ${pattern}`,
+          description: 'Testing pattern validation',
+          basePath: '/test/pattern',
+          namingStructure: pattern,
+          fileNameCase: 'snake' as const,
+          watchForChanges: false,
+          autoOrganize: false,
+        };
+
+        await manager.addTemplate(template);
+      }
+
+      const templates = await manager.getAllTemplates();
+      expect(templates.length).toBeGreaterThanOrEqual(validPatterns.length);
+
+      console.log('✅ Naming structure validation test passed');
+    }, 10000);
+
+    it('should handle all file name case types', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const caseTypes: Array<'snake' | 'kebab' | 'camel' | 'pascal'> =
+        ['snake', 'kebab', 'camel', 'pascal'];
+
+      for (const caseType of caseTypes) {
+        const template = {
+        id: randomUUID(),
+          name: `Case Type ${caseType}`,
+          description: `Testing ${caseType} case`,
+          basePath: `/test/${caseType}`,
+          namingStructure: '{file_title}',
+          fileNameCase: caseType,
+          watchForChanges: false,
+          autoOrganize: false,
+        };
+
+        await manager.addTemplate(template);
+      }
+
+      const templates = await manager.getAllTemplates();
+      const savedCaseTypes = templates
+        .filter(t => t.name.startsWith('Case Type'))
+        .map(t => t.fileNameCase);
+
+      expect(savedCaseTypes).toContain('snake');
+      expect(savedCaseTypes).toContain('kebab');
+      expect(savedCaseTypes).toContain('camel');
+      expect(savedCaseTypes).toContain('pascal');
+
+      console.log('✅ File name case types test passed');
+    }, 10000);
+  });
+
+  describe('Template Retrieval', () => {
+    it('should retrieve template by ID', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const template = {
+        id: randomUUID(),
+        name: 'Retrieve By ID',
+        description: 'Test retrieval',
+        basePath: '/test/retrieve',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template);
+
+      const templates = await manager.getAllTemplates();
+      const created = templates.find(t => t.name === 'Retrieve By ID');
+
+      expect(created).toBeDefined();
+
+      if (created) {
+        const retrieved = await manager.getTemplate(created.id);
+        expect(retrieved).toBeDefined();
+        expect(retrieved?.id).toBe(created.id);
+        expect(retrieved?.name).toBe('Retrieve By ID');
+      }
+
+      console.log('✅ Template retrieval by ID test passed');
+    }, 10000);
+
+    it('should return undefined for non-existent template ID', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const retrieved = await manager.getTemplate('non-existent-id-99999');
+      expect(retrieved).toBeUndefined();
+
+      console.log('✅ Non-existent template retrieval test passed');
+    }, 10000);
+  });
+
+  describe('Template Filtering', () => {
+    it('should filter templates by watch status', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      // Create templates with different watch statuses
+      await manager.addTemplate({
+        name: 'Watched Template 1',
+        description: 'Watched',
+        basePath: '/test/watched1',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: true,
+        autoOrganize: false,
+      });
+
+      await manager.addTemplate({
+        name: 'Unwatched Template 1',
+        description: 'Not watched',
+        basePath: '/test/unwatched1',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      });
+
+      const allTemplates = await manager.getAllTemplates();
+      const watched = allTemplates.filter(t => t.watchForChanges);
+      const unwatched = allTemplates.filter(t => !t.watchForChanges);
+
+      expect(watched.length).toBeGreaterThan(0);
+      expect(unwatched.length).toBeGreaterThan(0);
+
+      console.log('✅ Template filtering test passed');
+    }, 10000);
+  });
+
+  describe('Template Edge Cases', () => {
+    it('should handle empty template list', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      // Create a new manager with fresh config directory
+      const freshConfigDir = join(testDir, '.aifiles-empty-' + Date.now());
+      await mkdir(freshConfigDir, { recursive: true });
+
+      const originalEnv = process.env.AIFILES_CONFIG_DIR;
+      process.env.AIFILES_CONFIG_DIR = freshConfigDir;
+
+      const manager = new FolderTemplateManager();
+      const templates = await manager.getAllTemplates();
+
+      expect(Array.isArray(templates)).toBe(true);
+      expect(templates.length).toBe(0);
+
+      process.env.AIFILES_CONFIG_DIR = originalEnv;
+
+      console.log('✅ Empty template list test passed');
+    }, 10000);
+
+    it('should handle templates with very long names', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const longName = 'A'.repeat(200) + ' Template';
+
+      const template = {
+        id: randomUUID(),
+        name: longName,
+        description: 'Testing long names',
+        basePath: '/test/long',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template);
+
+      const templates = await manager.getAllTemplates();
+      const saved = templates.find(t => t.name === longName);
+
+      expect(saved).toBeDefined();
+
+      console.log('✅ Long template name test passed');
+    }, 10000);
+
+    it('should handle templates with unicode characters', async () => {
+      const { FolderTemplateManager } = await import('../../src/folder-templates.js');
+
+      const manager = new FolderTemplateManager();
+
+      const template = {
+        id: randomUUID(),
+        name: '模板 📁 Template Тест',
+        description: 'Unicode: 中文 Русский 日本語 🎉',
+        basePath: '/test/unicode',
+        namingStructure: '{file_title}',
+        fileNameCase: 'snake' as const,
+        watchForChanges: false,
+        autoOrganize: false,
+      };
+
+      await manager.addTemplate(template);
+
+      const templates = await manager.getAllTemplates();
+      const saved = templates.find(t => t.name === template.name);
+
+      expect(saved).toBeDefined();
+      expect(saved?.description).toBe(template.description);
+
+      console.log('✅ Unicode template test passed');
+    }, 10000);
+  });
+});

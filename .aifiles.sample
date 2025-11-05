@@ -1,11 +1,21 @@
-# OpenAI API key
+# LLM Provider (openai, grok, ollama, lmstudio)
+LLM_PROVIDER=openai
+
+# OpenAI API key (for OpenAI provider)
 OPENAI_API_KEY=
 
-# Replicate API key (for audio/video captioning)
-REPLICATE_API_KEY=
+# Grok API key (for Grok provider)
+GROK_API_KEY=
 
-# The JSON prompt file
-PROMPT_FILE=~/.aifiles.json
+# LLM Model name (e.g., gpt-3.5-turbo, gpt-4, grok-beta, llama3.2, mistral)
+LLM_MODEL=gpt-3.5-turbo
+
+# LLM Base URL (for Ollama or LM Studio)
+LLM_BASE_URL=http://127.0.0.1:11434
+
+# Field definitions file - defines what data to extract from files
+# NOT the actual LLM prompts (those are configured below)
+FIELDS_FILE=~/.aifiles/fields.json
 
 # Whether to ask for custom context at the start of the filename
 PROMPT_FOR_CUSTOM_CONTEXT=true
@@ -22,14 +32,73 @@ MAX_MEDIA_DATA_SOURCES=50
 # Whether to move or copy the file to the designated directory
 MOVE_FILE_OPERATION=true
 
+# File Manager Indexing Mode
+# 'launch' - Index all files at startup (thorough but slower startup)
+# 'on-demand' - Index folders when expanded (default, faster startup)
+FILE_MANAGER_INDEX_MODE=on-demand
+
+# Organization Timeout (in seconds)
+# Maximum time to wait for AI analysis before cancelling (default: 180 = 3 minutes)
+# Increase if using slow AI models or slow network connections
+ORGANIZATION_TIMEOUT=180
+
+# ==========================================
+# AI Prompt Customization
+# ==========================================
+
+# Custom prompt template for main file organization
+# This is the master prompt template that wraps all prompts from prompts.json
+# Available placeholders: {fileName}, {fileContent}, {exifMetadata}, {mimeType}, {mimeCategory}, {additionalPrompts}
+# Leave empty to use default template
+# Default: "Without prefacing it with anything, giving explanations or justifications, write a JSON object with an insightful but concise information for a \"{fileName}\" file classified as \"{mimeType} - {mimeCategory}\" with the file contents \"{fileContent}\". Make sure you double quote the JSON properties and values so it is valid JSON.\n\n### {additionalPrompts}"
+#ORGANIZATION_PROMPT_TEMPLATE=
+
+# Custom prompt for re-analyzing files in file manager (F6 key)
+# Leave empty to use default prompt
+# Default: "Analyze this file and provide: 1. A descriptive title 2. Main category 3. 3-5 relevant tags 4. Brief summary. Return as JSON with keys: title, category, tags, summary"
+#REANALYZE_PROMPT=
+
+# Custom prompt for watch mode file analysis
+# Leave empty to use default prompt
+# Default: Same as REANALYZE_PROMPT
+#WATCH_MODE_PROMPT=
+
+# Custom prompt for image caption generation (vision AI)
+# Used when analyzing image files that support vision models
+# Leave empty to use default prompt
+# Default: "Provide a concise, descriptive caption for this image suitable for file organization."
+#IMAGE_CAPTION_PROMPT=
+
+# Note: All organization prompts automatically include these instructions:
+# "Respond only with valid JSON containing exactly these fields: [field_list].
+#  IMPORTANT:
+#  - Start your response with { and end with }
+#  - Do not write an introduction or summary
+#  - Do not wrap the JSON in quotes or markdown code blocks
+#  - Return ONLY the JSON object, nothing else"
+# where [field_list] is dynamically generated from the template's field definitions.
+
 # Base directory to store files
 BASE_DIRECTORY=~
+
+# ==========================================
+# XDG User Directories (Standard Folders)
+# ==========================================
+# These directories are automatically scanned by the file manager
+# to discover unorganized files. Files in these directories can be
+# browsed and organized through the file manager interface.
 
 # Directory for archived files
 ARCHIVES_DIRECTORY=Archives
 ARCHIVES_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_title}--{file_date_created}
 ARCHIVES_FILE_NAME_CASE=pascal
 # Example: If file_title = "Annual Report", file_date = "2022-02-24", file_category_1 = "Financials", file_category_2 = "Reports", and revision_number = 2, then the file name will be "Financials/Reports/AnnualReport--2022-02-24-v2.pdf"
+
+# Directory for downloads (discovered files, not automatically organized)
+DOWNLOADS_DIRECTORY=Downloads
+
+# Directory for desktop files (discovered files, not automatically organized)
+DESKTOP_DIRECTORY=Desktop
 
 # Directory for documents
 DOCUMENT_DIRECTORY=Documents

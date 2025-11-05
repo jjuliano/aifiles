@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/jjuliano/aifiles/discussions
+    about: Ask questions, share ideas, and discuss AI Files
+  - name: 📚 Documentation
+    url: https://github.com/jjuliano/aifiles/blob/main/README.md
+    about: Read the full documentation
+  - name: 🚀 Quick Start Guide
+    url: https://github.com/jjuliano/aifiles/blob/main/QUICKSTART.md
+    about: Get started in 5 minutes
+  - name: 🔧 Troubleshooting
+    url: https://github.com/jjuliano/aifiles/blob/main/TESTING.md
+    about: Common issues and solutions
