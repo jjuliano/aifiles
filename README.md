@@ -1,6 +1,6 @@
 <div align="center">
   <div>
-    <script src="https://asciinema.org/a/w52cMmhaaeyw8OA9FlXe8QlSP.js" id="asciicast-w52cMmhaaeyw8OA9FlXe8QlSP" async="true"></script>
+    <img src=".github/screencapture.gif" alt="AIFiles"/>
     <h1 align="center">🤖 AIFiles</h1>
   </div>
 	<p>A powerful CLI application that helps you organize and manage your files using AI.</p>
