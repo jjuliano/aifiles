@@ -4,12 +4,14 @@ export type { FolderTemplate } from './folder-templates.js';
 
 // Configuration types
 export interface AIFilesConfig {
-  LLM_PROVIDER?: 'openai' | 'grok' | 'deepseek' | 'ollama' | 'lmstudio';
+  LLM_PROVIDER?: 'openai' | 'grok' | 'deepseek' | 'ollama' | 'lmstudio' | 'gemini' | 'copilot';
   LLM_MODEL?: string;
   LLM_BASE_URL?: string;
   GROK_API_KEY?: string;
   DEEPSEEK_API_KEY?: string;
   OPENAI_API_KEY?: string;
+  GEMINI_API_KEY?: string;
+  COPILOT_API_KEY?: string;
   BASE_DIRECTORY?: string;
   DOWNLOADS_DIRECTORY?: string;
   DESKTOP_DIRECTORY?: string;

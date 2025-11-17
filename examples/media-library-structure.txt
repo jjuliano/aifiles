@@ -1,0 +1,156 @@
+./archives
+./archives/assets
+./archives/backups
+./archives/datasets
+./archives/datasets/research
+./archives/datasets/statistics
+./archives/news
+./archives/scientific
+./archives/websites
+./audio
+./audio/books
+./audio/books/Doyle, Arthur Conan
+./audio/books/Rowling, J. K
+./audio/music
+./audio/music/Bastille
+./audio/music/Bastille/Bastille - 2016 - Wild World [CD - FLAC - Lossless] {CDVX 3159}
+./audio/music/Various Artists
+./audio/music/Various Artists/Various Artists - Bravo Hits 1 (1998) [FLAC] {9548-31256-2}
+./audio/playlists
+./audio/podcasts
+./audio/podcasts/Der GameOne-Plauschangriff
+./audio/recordings
+./audio/soundfx
+./audio/soundtracks
+./audio/soundtracks/games
+./audio/soundtracks/movies
+./audio/soundtracks/television
+./documents
+./games
+./games/party
+./games/sport
+./games/sport/competitive
+./games/sport/mind
+./games/sport/physical
+./games/tabletop
+./games/tabletop/board
+./games/tabletop/card
+./games/tabletop/dice
+./games/tabletop/pen-and-paper
+./games/tabletop/rpg
+./games/tabletop/strategy
+./games/tabletop/tile-based
+./games/video
+./games/video/arcade
+./games/video/browser
+./games/video/computer
+./games/video/computer/linux
+./games/video/computer/mac
+./games/video/computer/windows
+./games/video/console
+./games/video/console/sony-playstation2
+./games/video/console/sony-playstation2/firmware
+./games/video/console/sony-playstation2/homebrew
+./games/video/console/sony-playstation2/manuals
+./games/video/handheld
+./games/video/handheld/nintendo-gameboy
+./games/video/handheld/nintendo-gameboy/firmware
+./games/video/handheld/nintendo-gameboy/homebrew
+./games/video/handheld/nintendo-gameboy/manuals
+./games/video/handheld/nintendo-gameboy/roms
+./games/video/mobile
+./images
+./images/animated
+./images/artwork
+./images/artwork/digital-art
+./images/artwork/drawings
+./images/artwork/logos
+./images/artwork/paintings
+./images/artwork/sculpture
+./images/charts
+./images/charts/area-charts
+./images/charts/bar-charts
+./images/charts/bubble-charts
+./images/charts/flowcharts
+./images/charts/infographics
+./images/charts/line-charts
+./images/charts/maps
+./images/charts/matrices
+./images/charts/mind-maps
+./images/charts/miscellaneous
+./images/charts/organizational-charts
+./images/charts/pie-charts
+./images/charts/sankey-diagrams
+./images/charts/spiral-diagrams
+./images/charts/treemaps
+./images/charts/venn-diagrams
+./images/charts/wordclouds
+./images/memes
+./images/photos
+./images/photos/friends-and-family
+./images/photos/other
+./images/photos/personal
+./images/purpose-based
+./images/purpose-based/archives
+./images/purpose-based/archives/instagram-archives
+./images/purpose-based/profile-pics
+./images/purpose-based/video-games
+./images/purpose-based/wallpapers
+./images/screenshots
+./images/screenshots/4chan
+./images/screenshots/discord
+./images/screenshots/facebook
+./images/screenshots/imessage
+./images/screenshots/instagram
+./images/screenshots/reddit
+./images/screenshots/snapchat
+./images/screenshots/twitter
+./images/screenshots/whatsapp
+./images/screenshots/youtube
+./literature
+./software
+./software/Applications
+./software/Applications/android
+./software/Applications/ios
+./software/Applications/linux
+./software/Applications/mac-osx
+./software/Applications/mac-ppc
+./software/Applications/win32
+./software/Applications/win32/MKVToolNix
+./software/Applications/win32/OpenEmu
+./software/Applications/win64
+./software/Firmware
+./software/Scripts
+./software/Source
+./software/systems
+./software/systems/Apple
+./software/systems/Apple Inc
+./software/systems/Apple Inc/Apple II
+./software/systems/Apple Inc/Classic
+./software/systems/Apple Inc/macOS
+./software/systems/Apple/Apple II
+./software/systems/Apple/Mac (Classic)
+./software/systems/Apple/Mac (Modern)
+./software/systems/Commodore International
+./software/systems/Commodore International/Amiga
+./software/systems/IBM
+./software/systems/IBM/OS／2
+./software/systems/IBM/PC DOS
+./software/systems/Microsoft
+./software/systems/Microsoft/MS DOS
+./software/systems/Microsoft/Windows
+./software/Typefaces
+./video
+./video/discs
+./video/movies
+./video/movies/The Godfather (1972) {imdb-tt0068646}
+./video/movies/The Godfather 2 (1974) {tmdb-240}
+./video/tv-anime
+./video/tv-anime/Attack on Titan (2013)
+./video/tv-anime/Attack on Titan (2013)/Attack.On.Titan.1080p.10bit.DualAudio.BluRay-ABi
+./video/tv-anime/Attack on Titan (2013)/Attack.On.Titan.Season.2.1080p.10bit.DualAudio.BluRay-ABi
+./video/tv-shows
+./video/tv-shows/Sherlock (2010)
+./video/tv-shows/Sherlock (2010)/Sherlock.S01.1080p.BluRay.x264-DON
+./video/vhs
+./video/web
