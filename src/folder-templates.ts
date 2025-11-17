@@ -13,6 +13,7 @@ export interface FolderTemplate {
   autoOrganize?: boolean;
   watchForChanges?: boolean;
   folderStructure?: string[]; // Array of folder paths to create
+  enforceTemplateStructure?: boolean; // If true, files go directly into selected template folder. If false, allows LLM to create subcategories within selected folder
 }
 
 export class FolderTemplateManager {
@@ -89,10 +90,11 @@ export class FolderTemplateManager {
         name: 'Documents',
         description: 'General documents organized by type and date',
         basePath: '~/Documents',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}',
+        namingStructure: '{llm_category_1}/{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Documents benefit from single level sub-categorization
         folderStructure: [
           './Reports',
           './Reports/Financial',
@@ -114,10 +116,11 @@ export class FolderTemplateManager {
         name: 'Downloads',
         description: 'Automatically organize downloaded files by type',
         basePath: '~/Downloads',
-        namingStructure: '{file_category_1}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: true,
         watchForChanges: true,
+        enforceTemplateStructure: true, // Simple downloads - direct placement in categorized folders
         folderStructure: [
           './Documents',
           './Images',
@@ -134,10 +137,11 @@ export class FolderTemplateManager {
         name: 'Desktop',
         description: 'Keep desktop clean with automatic organization',
         basePath: '~/Desktop',
-        namingStructure: '{file_category_1}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: true,
         watchForChanges: true,
+        enforceTemplateStructure: true, // Desktop cleanup benefits from sub-categorization
         folderStructure: [
           './Work',
           './Personal',
@@ -152,10 +156,11 @@ export class FolderTemplateManager {
         name: 'Pictures',
         description: 'Photos organized by date and type',
         basePath: '~/Pictures',
-        namingStructure: '{file_category_1}/{file_date_created}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: true,
         watchForChanges: true,
+        enforceTemplateStructure: true, // Photos benefit from additional sub-categorization
         folderStructure: [
           './Photos',
           './Photos/Family',
@@ -177,10 +182,11 @@ export class FolderTemplateManager {
         name: 'Videos',
         description: 'Video files organized by type and date',
         basePath: '~/Videos',
-        namingStructure: '{file_category_1}/{file_date_created}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: true,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Videos benefit from sub-categorization (dates, events, etc.)
         folderStructure: [
           './Personal',
           './Family',
@@ -201,6 +207,7 @@ export class FolderTemplateManager {
         fileNameCase: 'kebab',
         autoOrganize: true,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Allow subcategories for music organization
         folderStructure: [
           './Library',
           './Playlists',
@@ -218,10 +225,11 @@ export class FolderTemplateManager {
         name: 'Work Documents',
         description: 'Professional documents organized by project and type',
         basePath: '~/Documents/Work',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}--{file_date_created}',
+        namingStructure: '{llm_category_1}/{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Work docs benefit from single level sub-categorization
         folderStructure: [
           './Projects',
           './Projects/Active',
@@ -252,10 +260,11 @@ export class FolderTemplateManager {
         name: 'Personal Documents',
         description: 'Personal files organized by category',
         basePath: '~/Documents/Personal',
-        namingStructure: '{file_category_1}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Personal docs benefit from sub-categorization
         folderStructure: [
           './Financial',
           './Financial/Bank-Statements',
@@ -291,10 +300,11 @@ export class FolderTemplateManager {
         name: 'Development',
         description: 'Code projects and development resources',
         basePath: '~/Development',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Development projects need hierarchical organization
         folderStructure: [
           './Projects',
           './Projects/Active',
@@ -328,10 +338,11 @@ export class FolderTemplateManager {
         name: 'Creative Projects',
         description: 'Design, writing, and creative work',
         basePath: '~/Creative',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Creative projects need sophisticated hierarchical organization
         folderStructure: [
           './Design',
           './Design/Graphics',
@@ -370,10 +381,11 @@ export class FolderTemplateManager {
         name: 'Research',
         description: 'Academic and research materials',
         basePath: '~/Research',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}',
+        namingStructure: '{llm_category_1}/{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Research docs benefit from single level sub-categorization
         folderStructure: [
           './Papers',
           './Papers/Published',
@@ -403,10 +415,11 @@ export class FolderTemplateManager {
         name: 'Learning',
         description: 'Educational materials and courses',
         basePath: '~/Learning',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Allow subcategories for learning organization
         folderStructure: [
           './Courses',
           './Courses/In-Progress',
@@ -433,10 +446,11 @@ export class FolderTemplateManager {
         name: 'Archives',
         description: 'Long-term storage and archives',
         basePath: '~/Archives',
-        namingStructure: '{file_category_1}/{file_date_created}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Allow subcategories for archive organization
         folderStructure: [
           './Documents',
           './Documents/2020',
@@ -463,10 +477,11 @@ export class FolderTemplateManager {
         name: 'Financial',
         description: 'Financial documents and records',
         basePath: '~/Documents/Financial',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}--{file_date_created}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Allow subcategories for financial organization
         folderStructure: [
           './Banking',
           './Banking/Statements',
@@ -508,10 +523,11 @@ export class FolderTemplateManager {
         name: 'Business',
         description: 'Business operations and management',
         basePath: '~/Business',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Allow subcategories for business organization
         folderStructure: [
           './Operations',
           './Operations/Policies',
@@ -554,10 +570,11 @@ export class FolderTemplateManager {
         name: 'Media Production',
         description: 'Professional media production projects',
         basePath: '~/Media-Production',
-        namingStructure: '{file_category_1}/{file_category_2}/{file_title}',
+        namingStructure: '{file_title}',
         fileNameCase: 'kebab',
         autoOrganize: false,
         watchForChanges: false,
+        enforceTemplateStructure: true, // Allow subcategories for media production organization
         folderStructure: [
           './Video-Projects',
           './Video-Projects/Active',
@@ -727,5 +744,123 @@ export class FolderTemplateManager {
     };
 
     await this.addTemplate(template);
+  }
+
+  /**
+   * Maps an AI-generated path to the closest matching folder in the template's folderStructure.
+   * This ensures files are organized within the predefined folder structure.
+   */
+  mapPathToFolderStructure(template: FolderTemplate, aiGeneratedPath: string): string {
+    if (!template.folderStructure || template.folderStructure.length === 0) {
+      // No predefined structure, use the AI-generated path as-is
+      return aiGeneratedPath;
+    }
+
+    // Extract the directory part from the AI-generated path (remove filename)
+    const aiDirPath = path.dirname(aiGeneratedPath);
+
+    // Remove the base path from the AI-generated directory path to get relative path
+    const basePath = resolvePath(template.basePath);
+    const relativeAiPath = path.relative(basePath, aiDirPath);
+
+    // Split the AI path into components
+    const aiPathParts = relativeAiPath.split(path.sep).filter(p => p && p !== '.');
+
+    if (aiPathParts.length === 0) {
+      return aiGeneratedPath;
+    }
+
+    // Get the first level folder from AI analysis (usually the main category)
+    const aiMainCategory = aiPathParts[0].toLowerCase();
+
+    // Look for exact matches in the folder structure
+    const exactMatch = template.folderStructure.find(folder => {
+      const folderPath = folder.replace(/^\.\//, '');
+      const folderParts = folderPath.split('/').filter(p => p);
+      return folderParts.length > 0 && folderParts[0].toLowerCase() === aiMainCategory;
+    });
+
+    if (exactMatch) {
+      // Found exact match, use it
+      const matchedPath = exactMatch.replace(/^\.\//, '');
+      const remainingParts = aiPathParts.slice(1);
+      const mappedDir = [matchedPath, ...remainingParts].join('/');
+      const fullMappedPath = path.join(basePath, mappedDir, path.basename(aiGeneratedPath));
+      return fullMappedPath;
+    }
+
+    // Look for partial matches (fuzzy matching)
+    const fuzzyMatches = template.folderStructure
+      .map(folder => {
+        const folderPath = folder.replace(/^\.\//, '');
+        const folderParts = folderPath.split('/').filter(p => p);
+        if (folderParts.length === 0) return null;
+
+        const folderMain = folderParts[0].toLowerCase();
+        // Calculate similarity score
+        const similarity = this.calculateSimilarity(aiMainCategory, folderMain);
+        return { folder: folderPath, similarity, depth: folderParts.length };
+      })
+      .filter(match => match && match.similarity > 0.3) // Only consider matches with >30% similarity
+      .sort((a, b) => b.similarity - a.similarity || a.depth - b.depth); // Sort by similarity, then by depth
+
+    if (fuzzyMatches.length > 0) {
+      const bestMatch = fuzzyMatches[0].folder;
+      const remainingParts = aiPathParts.slice(1);
+      const mappedDir = [bestMatch, ...remainingParts].join('/');
+      const fullMappedPath = path.join(basePath, mappedDir, path.basename(aiGeneratedPath));
+      return fullMappedPath;
+    }
+
+    // No good match found, check if we should create a new folder or use the first available
+    // Only create new folders for very specific categories, otherwise use the most generic existing folder
+    if (aiPathParts.length <= 2 && template.folderStructure.length > 0) {
+      // For simple categorizations, use the first available folder as a catch-all
+      const fallbackFolder = template.folderStructure[0].replace(/^\.\//, '');
+      const remainingParts = aiPathParts.slice(1);
+      const mappedDir = [fallbackFolder, ...remainingParts].join('/');
+      const fullMappedPath = path.join(basePath, mappedDir, path.basename(aiGeneratedPath));
+      return fullMappedPath;
+    }
+
+    // For complex categorizations, allow creating new folders but log a warning
+    console.warn(`⚠️  No matching folder found in template '${template.name}' for category '${aiMainCategory}'. Creating new folder structure.`);
+    return aiGeneratedPath;
+  }
+
+  /**
+   * Calculate string similarity using Levenshtein distance (simple implementation)
+   */
+  private calculateSimilarity(str1: string, str2: string): number {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+
+    if (longer.length === 0) return 1.0;
+
+    const distance = this.levenshteinDistance(longer, shorter);
+    return (longer.length - distance) / longer.length;
+  }
+
+  /**
+   * Calculate Levenshtein distance between two strings
+   */
+  private levenshteinDistance(str1: string, str2: string): number {
+    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+
+    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+
+    for (let j = 1; j <= str2.length; j++) {
+      for (let i = 1; i <= str1.length; i++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j][i - 1] + 1,     // insertion
+          matrix[j - 1][i] + 1,     // deletion
+          matrix[j - 1][i - 1] + cost // substitution
+        );
+      }
+    }
+
+    return matrix[str2.length][str1.length];
   }
 }

@@ -389,7 +389,7 @@ BASE_DIRECTORY=~
 
 # Directory configurations
 DOCUMENT_DIRECTORY=Documents
-DOCUMENT_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_category_3}--{file_title}
+DOCUMENT_FILENAME_FORMAT={file_title}
 DOCUMENT_FILE_NAME_CASE=snake
 
 MUSIC_DIRECTORY=Music
@@ -401,15 +401,15 @@ PICTURES_FILENAME_FORMAT={picture_date_taken}/{file_title}
 PICTURES_FILE_NAME_CASE=lower_snake
 
 VIDEOS_DIRECTORY=Videos
-VIDEOS_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_title}
+VIDEOS_FILENAME_FORMAT={file_title}
 VIDEOS_FILE_NAME_CASE=upper_snake
 
 ARCHIVES_DIRECTORY=Archives
-ARCHIVES_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_title}--{file_date_created}
+ARCHIVES_FILENAME_FORMAT={file_title}
 ARCHIVES_FILE_NAME_CASE=pascal
 
 OTHERS_DIRECTORY=Others
-OTHERS_FILENAME_FORMAT={file_category_1}/{file_category_2}/{file_title}
+OTHERS_FILENAME_FORMAT={file_title}
 OTHERS_FILE_NAME_CASE=pascal
 `;
 

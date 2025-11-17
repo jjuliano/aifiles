@@ -60,6 +60,7 @@ async function showTemplate(templateId: string) {
   console.log(`\n${green('Automation Settings:')}`);
   console.log(`  👀 Watch for Changes: ${template.watchForChanges ? green('Enabled') : yellow('Disabled')}`);
   console.log(`  🤖 Auto Organize: ${template.autoOrganize ? green('Enabled') : yellow('Disabled')}`);
+  console.log(`  📏 Enforce Structure: ${template.enforceTemplateStructure ? green('Strict (direct only)') : yellow('Flexible (subcategories allowed)')}`);
 
   if (template.folderStructure && template.folderStructure.length > 0) {
     console.log(`\n${green('Folder Structure:')}`);
@@ -101,6 +102,7 @@ async function listTemplates() {
     console.log(`      🆔 Template ID: ${template.id}`);
     console.log(`      👀 Watch for Changes: ${template.watchForChanges ? 'Enabled' : 'Disabled'}`);
     console.log(`      🤖 Auto Organize: ${template.autoOrganize ? 'Enabled' : 'Disabled'}`);
+    console.log(`      📏 Enforce Structure: ${template.enforceTemplateStructure ? 'Strict' : 'Flexible'}`);
 
     if (template.folderStructure && template.folderStructure.length > 0) {
       console.log(`      📁 Folder Structure: ${template.folderStructure.length} folders`);
@@ -147,7 +149,7 @@ async function addTemplate() {
 
   const namingStructure = await text({
     message: 'Naming structure:',
-    placeholder: '{file_category_1}/{file_title}',
+    placeholder: '{file_title}',
     validate: (value) => {
       if (!value) return 'Naming structure is required';
     },
@@ -326,6 +328,34 @@ async function disableTemplate(templateId: string) {
   console.log(yellow(`\n✓ Watching disabled for '${template.name}'\n`));
 }
 
+async function enableEnforceStructure(templateId: string) {
+  const templates = await templateManager.loadTemplates();
+  const template = templates.find((t) => t.id === templateId);
+
+  if (!template) {
+    console.log(red(`\n✗ Template '${templateId}' not found\n`));
+    return;
+  }
+
+  await templateManager.updateTemplate(templateId, { enforceTemplateStructure: true });
+  console.log(green(`\n✓ Structure enforcement enabled for '${template.name}'\n`));
+  console.log('Files will be placed directly in selected template folders only.\n');
+}
+
+async function disableEnforceStructure(templateId: string) {
+  const templates = await templateManager.loadTemplates();
+  const template = templates.find((t) => t.id === templateId);
+
+  if (!template) {
+    console.log(red(`\n✗ Template '${templateId}' not found\n`));
+    return;
+  }
+
+  await templateManager.updateTemplate(templateId, { enforceTemplateStructure: false });
+  console.log(green(`\n✓ Structure enforcement disabled for '${template.name}'\n`));
+  console.log('LLM can now create subcategories within template folders.\n');
+}
+
 async function importFolderStructure(templateId: string, structurePath: string) {
   const templates = await templateManager.loadTemplates();
   const template = templates.find((t) => t.id === templateId);
@@ -460,6 +490,8 @@ async function showInteractiveMenu() {
         { value: 'edit', label: '✏️  Edit template' },
         { value: 'enable', label: '🟢 Enable watching' },
         { value: 'disable', label: '🟡 Disable watching' },
+        { value: 'enable-enforce', label: '🔒 Enable strict enforcement' },
+        { value: 'disable-enforce', label: '🔓 Disable strict enforcement' },
         { value: 'remove', label: '🗑️  Remove template' },
       ] : []),
       { value: 'exit', label: '🚪 Exit' },
@@ -547,6 +579,38 @@ async function showInteractiveMenu() {
           await disableTemplate(disableId);
           break;
         }
+        case 'enable-enforce': {
+          if (templates.length === 0) {
+            console.log(yellow('No templates to configure.\n'));
+            break;
+          }
+          const enableEnforceOptions = templates.map((t, i) => ({
+            value: t.id,
+            label: `${i + 1}. ${t.name} (${t.enforceTemplateStructure ? 'Strict' : 'Flexible'})`,
+          }));
+          const enableEnforceId = await select({
+            message: 'Select template to enable strict structure enforcement:',
+            options: enableEnforceOptions,
+          }) as string;
+          await enableEnforceStructure(enableEnforceId);
+          break;
+        }
+        case 'disable-enforce': {
+          if (templates.length === 0) {
+            console.log(yellow('No templates to configure.\n'));
+            break;
+          }
+          const disableEnforceOptions = templates.map((t, i) => ({
+            value: t.id,
+            label: `${i + 1}. ${t.name} (${t.enforceTemplateStructure ? 'Strict' : 'Flexible'})`,
+          }));
+          const disableEnforceId = await select({
+            message: 'Select template to disable strict structure enforcement:',
+            options: disableEnforceOptions,
+          }) as string;
+          await disableEnforceStructure(disableEnforceId);
+          break;
+        }
         case 'remove': {
           if (templates.length === 0) {
             console.log(yellow('No templates to remove.\n'));
@@ -599,6 +663,8 @@ ${green("COMMANDS")}
   remove <template-id>                Remove a folder template
   enable <template-id>                Enable watching for a template
   disable <template-id>               Disable watching for a template
+  enable-enforce <template-id>        Enable strict folder structure enforcement
+  disable-enforce <template-id>       Disable strict enforcement (allow subcategories)
   create-from-structure               Create template with folder structure (interactive)
   import-structure <id> <file>        Import folder structure from file
   create-folders <template-id>        Create folders from template structure
@@ -701,6 +767,20 @@ ${green("EXAMPLES")}
         process.exit(1);
       }
       await disableTemplate(templateId);
+    } else if (command === 'enable-enforce') {
+      if (!templateId) {
+        console.log(red('\n✗ Template ID required for enable-enforce command\n'));
+        console.log('Usage:', green('aifiles-templates enable-enforce <template-id>'));
+        process.exit(1);
+      }
+      await enableEnforceStructure(templateId);
+    } else if (command === 'disable-enforce') {
+      if (!templateId) {
+        console.log(red('\n✗ Template ID required for disable-enforce command\n'));
+        console.log('Usage:', green('aifiles-templates disable-enforce <template-id>'));
+        process.exit(1);
+      }
+      await disableEnforceStructure(templateId);
     } else if (command === 'create-from-structure') {
       if (isNonInteractive) {
         console.log(red('✗ create-from-structure command requires interactive mode'));

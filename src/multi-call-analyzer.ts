@@ -38,6 +38,12 @@ export interface FileAnalysisResult {
   selectedTemplateName?: string;
   templateConfidence?: number;
   templateReasoning?: string;
+
+  // Folder selection within template (Call 6)
+  selectedFolder?: string;
+  selectedFolderPath?: string;
+  folderConfidence?: number;
+  folderReasoning?: string;
 }
 
 /**
@@ -715,6 +721,203 @@ Please fix ALL the issues from previous attempts. Make sure to:
 }
 
 /**
+ * Call 6: Folder Selection within Template
+ * When a template is selected, choose the best folder from its predefined structure
+ */
+async function selectFolderFromTemplate(
+  config: ConfigType,
+  fileName: string,
+  basicAnalysis: {
+    title: string;
+    summary: string;
+    mainTopic: string;
+    contentType: string;
+  },
+  categorization: {
+    category: string;
+    subcategories: string[];
+    fileType: string;
+  },
+  metadata: {
+    tags: string[];
+    keywords: string[];
+  },
+  organization: {
+    suggestedPath: string;
+    suggestedFilename: string;
+  },
+  selectedTemplate: FolderTemplate
+): Promise<{
+  selectedFolder: string;
+  selectedFolderPath: string;
+  folderConfidence: number;
+  folderReasoning: string;
+}> {
+  // Build folder descriptions for the LLM
+  const folderDescriptions = selectedTemplate.folderStructure
+    ?.map((folder, index) => {
+      const folderPath = folder.replace(/^\.\//, '');
+      const folderParts = folderPath.split('/').filter(p => p);
+      const folderName = folderParts[folderParts.length - 1];
+      const depth = folderParts.length;
+
+      return `FOLDER ${index + 1}:
+   Path: ${folderPath}
+   Name: ${folderName}
+   Depth: ${depth} level${depth === 1 ? '' : 's'}
+   Full Path: ${selectedTemplate.basePath}/${folderPath}`;
+    })
+    .join('\n\n') || 'No folders available';
+
+  const isEnforced = selectedTemplate.enforceTemplateStructure === true;
+
+  const prompt = `Based on the file analysis, ${isEnforced ? 'select the best folder from the template\'s predefined structure' : 'determine the optimal folder path within the template structure'}.
+
+FILE ANALYSIS:
+Title: ${basicAnalysis.title}
+Summary: ${basicAnalysis.summary}
+Main Topic: ${basicAnalysis.mainTopic}
+Content Type: ${basicAnalysis.contentType}
+Category: ${categorization.category}
+Subcategories: ${categorization.subcategories.join(', ')}
+File Type: ${categorization.fileType}
+Tags: ${metadata.tags.join(', ')}
+Keywords: ${metadata.keywords.join(', ')}
+Suggested Path: ${organization.suggestedPath}
+Suggested Filename: ${organization.suggestedFilename}
+
+SELECTED TEMPLATE: ${selectedTemplate.name} (${selectedTemplate.id})
+Base Path: ${selectedTemplate.basePath}
+Naming Structure: ${selectedTemplate.namingStructure}
+${isEnforced ? 'ENFORCED STRUCTURE: Files must go directly into selected predefined folders' : 'FLEXIBLE STRUCTURE: You can create subcategories within selected folders'}
+
+AVAILABLE FOLDERS IN TEMPLATE:
+${folderDescriptions}
+
+${isEnforced ? `Choose the SINGLE best folder for this file from the predefined options above. The file will be placed directly in this folder.
+
+Consider:
+1. Which folder semantically matches the file's category and content?
+2. How well does the folder name align with the file's purpose and topic?
+3. Would this folder be the natural place someone would look for this file?
+4. How confident are you in this folder selection? (0.0 to 1.0)
+5. Why is this folder the best choice for this specific file?
+
+CRITICAL CONSTRAINTS:
+- You MUST ONLY choose from the folders listed in "AVAILABLE FOLDERS IN TEMPLATE"
+- You are FORBIDDEN from suggesting or creating ANY new folder names not in that exact list
+- You are FORBIDDEN from modifying or extending the predefined folder paths
+- If none of the available folders seem appropriate, you MUST still choose the closest match from the list
+- Any attempt to suggest folders outside this list will be considered an ERROR` : `Determine the optimal folder path for this file within the template structure. You can either select a predefined folder OR create a subcategory within one.
+
+Consider:
+1. Should this file go directly into one of the predefined folders, or would a subcategory be more appropriate?
+2. Which predefined folder would be the best starting point for this file's category?
+3. If creating a subcategory, what would be a logical and descriptive subfolder name?
+4. How well does your chosen path align with the file's purpose and content?
+5. How confident are you in this folder path? (0.0 to 1.0)
+6. Why is this path the best choice for this specific file?
+
+FLEXIBLE OPTIONS:
+- Select any folder from the "AVAILABLE FOLDERS IN TEMPLATE" list
+- Create subcategories by extending paths (e.g., "Reports/Financial/2024" from "Reports/Financial")
+- Your final path should be logical and follow standard organizational practices`}
+
+Return ONLY valid JSON with these exact fields. DO NOT include any text before or after the JSON:
+{
+  "selectedFolder": "${isEnforced ? 'folder-name' : 'folder/path'}",
+  "selectedFolderPath": "${isEnforced ? 'full/path/to/folder' : 'full/path/to/folder/or/subcategory'}",
+  "folderConfidence": 0.85,
+  "folderReasoning": "Brief explanation of why this path is the best match"
+}
+
+CRITICAL REQUIREMENTS:
+- Response must START with { and END with }
+- NO introductory text like "Based on the analysis:" or "I recommend:"
+- NO explanations outside the JSON object
+- NO markdown formatting or code blocks
+- folderConfidence must be a number between 0.0 and 1.0
+- selectedFolder must be ${isEnforced ? 'just the folder name (e.g., "Contracts", "Reports/Financial")' : 'the folder path (e.g., "Contracts", "Reports/Financial/2024")'}
+- selectedFolderPath must be the full relative path ${isEnforced ? '(e.g., "Contracts", "Reports/Financial")' : '(e.g., "Contracts", "Reports/Financial/2024", "Projects/Client-Work/Proposal")'}
+- Do NOT include the base path in selectedFolderPath - just the relative folder path`;
+
+  // Retry up to 10 times on JSON parse failure
+  let lastError: Error | undefined;
+  const errorHistory: Array<{ attempt: number; response: string; error: string }> = [];
+
+  for (let attempt = 1; attempt <= 10; attempt++) {
+    let response: string | undefined;
+    try {
+      // Build retry prompt with accumulated error history
+      let retryPrompt = prompt;
+      if (errorHistory.length > 0) {
+        retryPrompt = `${prompt}
+
+PREVIOUS ATTEMPTS FAILED (${errorHistory.length} attempts):
+${errorHistory.map((h, idx) => `
+--- Attempt ${h.attempt} ---
+Response: ${h.response.substring(0, 150)}${h.response.length > 150 ? '...' : ''}
+Error: ${h.error}
+`).join('\n')}
+
+Please fix ALL the issues from previous attempts. Make sure to:
+1. Return ONLY valid JSON (start with { and end with })
+2. Do not include any markdown, code blocks, or explanatory text
+3. Ensure all required fields are present and have the correct types
+4. Double-quote all strings properly`;
+      }
+
+      response = await generatePromptResponse(config, retryPrompt);
+      if (!response) {
+        throw new Error('Failed to get folder selection');
+      }
+
+      const result = await parseJson(response);
+
+      // Validate required fields for folder selection
+      if (!result || typeof result !== 'object') {
+        throw new Error('Invalid JSON response: not an object');
+      }
+      if (!result.selectedFolder || typeof result.selectedFolder !== 'string') {
+        throw new Error('Invalid JSON response: missing or invalid "selectedFolder" field');
+      }
+      if (!result.selectedFolderPath || typeof result.selectedFolderPath !== 'string') {
+        throw new Error('Invalid JSON response: missing or invalid "selectedFolderPath" field');
+      }
+      if (result.folderConfidence === undefined || typeof result.folderConfidence !== 'number') {
+        throw new Error('Invalid JSON response: missing or invalid "folderConfidence" field');
+      }
+      if (!result.folderReasoning || typeof result.folderReasoning !== 'string') {
+        throw new Error('Invalid JSON response: missing or invalid "folderReasoning" field');
+      }
+
+      return result;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      // Add to error history
+      if (response) {
+        errorHistory.push({
+          attempt,
+          response,
+          error: lastError.message
+        });
+      }
+
+      if (attempt < 10) {
+        console.log(`     ⚠️  Parse error on attempt ${attempt}/10`);
+        console.log(`     📄 Raw LLM output: ${response?.substring(0, 200)}${(response?.length || 0) > 200 ? '...' : ''}`);
+        console.log(`     ❌ Error: ${lastError.message}`);
+
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+      }
+    }
+  }
+
+  throw lastError || new Error('Failed to get folder selection after 10 attempts');
+}
+
+/**
  * Single-call analysis: Analyze file with one comprehensive LLM call
  * Provides basic organization recommendations in a single request
  */
@@ -856,7 +1059,15 @@ export async function analyzeFileMultiCall(
   mimeType: string | null,
   templates?: FolderTemplate[]
 ): Promise<FileAnalysisResult> {
-  const totalCalls = templates && templates.length > 0 ? 5 : 4;
+  // Determine total calls based on whether we need folder selection
+  let willDoFolderSelection = false;
+  if (templates && templates.length > 0) {
+    // We'll do template selection (Call 5), and potentially folder selection (Call 6)
+    // We can't know yet if we'll do Call 6 until we select the template
+    willDoFolderSelection = true; // Assume we might need it
+  }
+  const totalCalls = templates && templates.length > 0 ? 6 : 4; // Reserve slot for Call 6
+
   console.log('🔍 Starting multi-call analysis...');
 
   // Call 1: Basic understanding
@@ -901,6 +1112,38 @@ export async function analyzeFileMultiCall(
     console.log(`     ✓ Reason: ${selection.templateReasoning}`);
   }
 
+  // Call 6: Folder selection within template (optional, if template has folder structure)
+  let folderSelection: {
+    selectedFolder?: string;
+    selectedFolderPath?: string;
+    folderConfidence?: number;
+    folderReasoning?: string;
+  } = {};
+
+  if (templates && templates.length > 0 && templateSelection.selectedTemplateId) {
+    const selectedTemplate = templates.find(t => t.id === templateSelection.selectedTemplateId);
+    if (selectedTemplate && selectedTemplate.folderStructure && selectedTemplate.folderStructure.length > 0) {
+      console.log(`  📂 Call 6/${totalCalls}: Selecting best folder within template...`);
+      const selection = await selectFolderFromTemplate(
+        config,
+        fileName,
+        basicAnalysis,
+        categorization,
+        metadata,
+        organization,
+        selectedTemplate
+      );
+      folderSelection = {
+        selectedFolder: selection.selectedFolder,
+        selectedFolderPath: selection.selectedFolderPath,
+        folderConfidence: selection.folderConfidence,
+        folderReasoning: selection.folderReasoning,
+      };
+      console.log(`     ✓ Selected folder: ${selection.selectedFolderPath} (${(selection.folderConfidence * 100).toFixed(0)}%)`);
+      console.log(`     ✓ Reason: ${selection.folderReasoning}`);
+    }
+  }
+
   // Combine all results
   return {
     ...basicAnalysis,
@@ -908,6 +1151,7 @@ export async function analyzeFileMultiCall(
     ...metadata,
     ...organization,
     ...templateSelection,
+    ...folderSelection,
   };
 }
 
@@ -950,6 +1194,12 @@ ${result.selectedTemplateId ? `║ TEMPLATE SELECTION:
 ║   Template Confidence: ${result.templateConfidence ? (result.templateConfidence * 100).toFixed(0) : 'N/A'}%
 ║   Reasoning: ${result.templateReasoning || 'N/A'}
 ║
-` : ''}╚═══════════════════════════════════════════════════════════════
+${result.selectedFolder ? `║ FOLDER SELECTION:
+║   Selected Folder: ${result.selectedFolder}
+║   Folder Path: ${result.selectedFolderPath}
+║   Folder Confidence: ${result.folderConfidence ? (result.folderConfidence * 100).toFixed(0) : 'N/A'}%
+║   Reasoning: ${result.folderReasoning || 'N/A'}
+║
+` : ''}` : ''}╚═══════════════════════════════════════════════════════════════
 `.trim();
 }

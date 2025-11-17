@@ -405,8 +405,113 @@ export async function startWatchDaemon(): Promise<void> {
           template.fileNameCase || 'snake'
         );
 
-        const newPath = path.dirname(folderName);
-        const newFilePath = path.join(newPath, fileName);
+        // Handle folder organization based on template structure
+        let finalPath: string;
+        const currentDir = path.dirname(absolutePath); // Use file's current directory as base
+
+        if (template.folderStructure && template.folderStructure.length > 0) {
+          // Template has predefined folders - apply within current directory context
+          if (analysis.selectedFolderPath) {
+            if (template.enforceTemplateStructure) {
+              // ENFORCED MODE: Apply LLM categories as subfolders within current directory
+              const normalizedSelectedPath = analysis.selectedFolderPath.replace(/^\.\//, '');
+              const isValidFolder = template.folderStructure.some(folder => {
+                const normalizedTemplateFolder = folder.replace(/^\.\//, '');
+                return normalizedTemplateFolder === normalizedSelectedPath;
+              });
+
+              if (isValidFolder) {
+                // LLM selected a valid folder from the template
+                // Check if naming structure contains llm_category placeholders
+                const namingStructure = template.namingStructure;
+                const hasLlmCategories = namingStructure.includes('{llm_category_');
+
+                if (hasLlmCategories) {
+                  // Apply the full naming structure as subfolders within the current directory
+                  const templateBasePath = path.join(currentDir, analysis.selectedFolderPath);
+                  const aiPromptObj = {
+                    ...analysis,
+                    file_date_created: new Date().toISOString().split('T')[0],
+                  };
+                  const suggestedFile = await replacePromptKeys(
+                    namingStructure,
+                    aiPromptObj,
+                    templateBasePath,
+                    path.extname(fileName),
+                    template.fileNameCase || 'snake'
+                  );
+                  finalPath = suggestedFile;
+                } else {
+                  // Naming structure is just {file_title} or similar - place directly in selected folder within current dir
+                  finalPath = path.join(currentDir, analysis.selectedFolderPath, path.basename(folderName));
+                }
+              } else {
+                // LLM selected an invalid folder - use first valid folder as fallback
+                console.log(`   ⚠️  LLM selected invalid folder '${analysis.selectedFolderPath}', using fallback`);
+                const firstFolder = template.folderStructure[0].replace(/^\.\//, '');
+                finalPath = path.join(currentDir, firstFolder, path.basename(folderName));
+              }
+            } else {
+              // FLEXIBLE MODE: Apply within current directory context
+              const normalizedSelectedPath = analysis.selectedFolderPath.replace(/^\.\//, '');
+              const pathParts = normalizedSelectedPath.split('/');
+
+              // Check if the base folder (first part) exists in template
+              const baseFolder = pathParts[0];
+              const isValidBase = template.folderStructure.some(folder => {
+                const normalizedTemplateFolder = folder.replace(/^\.\//, '');
+                return normalizedTemplateFolder === baseFolder ||
+                       normalizedTemplateFolder.startsWith(baseFolder + '/');
+              });
+
+              if (isValidBase) {
+                // Apply within current directory
+                finalPath = path.join(currentDir, analysis.selectedFolderPath, path.basename(folderName));
+              } else {
+                // Use first valid folder as fallback
+                const firstFolder = template.folderStructure[0].replace(/^\.\//, '');
+                finalPath = path.join(currentDir, firstFolder, path.basename(folderName));
+              }
+            }
+          } else {
+            // No LLM folder selection - use first folder as default within current directory
+            const firstFolder = template.folderStructure[0].replace(/^\.\//, '');
+            finalPath = path.join(currentDir, firstFolder, path.basename(folderName));
+          }
+        } else {
+          // Template has no predefined folders - use naming structure within current directory
+          const namingStructure = template.namingStructure;
+          if (namingStructure && namingStructure !== '{file_title}') {
+            const aiPromptObj = {
+              ...analysis,
+              file_date_created: new Date().toISOString().split('T')[0],
+            };
+            finalPath = await replacePromptKeys(
+              namingStructure,
+              aiPromptObj,
+              currentDir,
+              path.extname(fileName),
+              template.fileNameCase || 'snake'
+            );
+          } else {
+            // Default to current directory with new filename
+            const aiPromptObj = {
+              ...analysis,
+              file_date_created: new Date().toISOString().split('T')[0],
+            };
+            const newFilename = await replacePromptKeys(
+              '{file_title}',
+              aiPromptObj,
+              currentDir,
+              path.extname(fileName),
+              template.fileNameCase || 'snake'
+            );
+            finalPath = path.join(currentDir, path.basename(newFilename));
+          }
+        }
+
+        const newPath = path.dirname(finalPath);
+        const newFilePath = path.join(newPath, path.basename(finalPath));
 
         // Create directory and move file
         await fs.mkdir(newPath, { recursive: true });
@@ -725,17 +830,19 @@ if (!exists) {
         file_category_1: analysis.category,
         file_category_2: analysis.subcategories?.[0] || '',
         file_category_3: analysis.subcategories?.[1] || '',
+        llm_category_1: analysis.category,
+        llm_category_2: analysis.subcategories?.[0] || '',
+        llm_category_3: analysis.subcategories?.[1] || '',
         file_date_created: new Date().toISOString().split('T')[0],
         ...analysis, // Include all other fields
       };
 
       // Use the selected template's naming structure
-      const format = selectedTemplate?.namingStructure || '{file_category_1}/{file_title}';
+      const format = selectedTemplate?.namingStructure || '{file_title}';
 
-      // Use template basePath if set and non-empty, otherwise use the file's current directory (watch path)
-      const mainDir = (selectedTemplate?.basePath && selectedTemplate.basePath.trim() !== '')
-        ? selectedTemplate.basePath
-        : path.dirname(absolutePath);
+      // Use file's current directory as base for location-aware organization
+      // This keeps files organized within their current directory context
+      const mainDir = path.dirname(absolutePath);
       const fileCase = selectedTemplate?.fileNameCase || 'snake';
 
       const filenameSpinner = spinner();
@@ -748,6 +855,96 @@ if (!exists) {
         fileExt,
         fileCase
       );
+
+      // Handle folder organization based on template structure
+      if (selectedTemplate) {
+        if (selectedTemplate.folderStructure && selectedTemplate.folderStructure.length > 0) {
+          // Template has predefined folders - apply within current directory context
+          if (analysis.selectedFolderPath) {
+            if (selectedTemplate.enforceTemplateStructure) {
+              // ENFORCED MODE: Apply LLM categories as subfolders within current directory
+              const normalizedSelectedPath = analysis.selectedFolderPath.replace(/^\.\//, '');
+              const isValidFolder = selectedTemplate.folderStructure.some(folder => {
+                const normalizedTemplateFolder = folder.replace(/^\.\//, '');
+                return normalizedTemplateFolder === normalizedSelectedPath;
+              });
+
+              if (isValidFolder) {
+                // LLM selected a valid folder from the template
+                // Check if naming structure contains llm_category placeholders
+                const namingStructure = selectedTemplate.namingStructure;
+                const hasLlmCategories = namingStructure.includes('{llm_category_');
+
+                if (hasLlmCategories) {
+                  // Apply the full naming structure as subfolders within the current directory
+                  const templateBasePath = path.join(mainDir, analysis.selectedFolderPath);
+                  newFile = await replacePromptKeys(
+                    namingStructure,
+                    promptObj,
+                    templateBasePath,
+                    fileExt,
+                    fileCase
+                  );
+                } else {
+                  // Naming structure is just {file_title} or similar - place directly in selected folder within current dir
+                  newFile = path.join(mainDir, analysis.selectedFolderPath, path.basename(newFile));
+                }
+              } else {
+                // LLM selected an invalid folder - use first valid folder as fallback
+                console.log(`⚠️  LLM selected invalid folder '${analysis.selectedFolderPath}', using fallback`);
+                const firstFolder = selectedTemplate.folderStructure[0].replace(/^\.\//, '');
+                newFile = path.join(mainDir, firstFolder, path.basename(newFile));
+              }
+            } else {
+              // FLEXIBLE MODE: Apply within current directory context
+              const normalizedSelectedPath = analysis.selectedFolderPath.replace(/^\.\//, '');
+              const pathParts = normalizedSelectedPath.split('/');
+
+              // Check if the base folder (first part) exists in template
+              const baseFolder = pathParts[0];
+              const isValidBase = selectedTemplate.folderStructure.some(folder => {
+                const normalizedTemplateFolder = folder.replace(/^\.\//, '');
+                return normalizedTemplateFolder === baseFolder ||
+                       normalizedTemplateFolder.startsWith(baseFolder + '/');
+              });
+
+              if (isValidBase) {
+                // Apply within current directory
+                newFile = path.join(mainDir, analysis.selectedFolderPath, path.basename(newFile));
+              } else {
+                // Use first valid folder as fallback
+                const firstFolder = selectedTemplate.folderStructure[0].replace(/^\.\//, '');
+                newFile = path.join(mainDir, firstFolder, path.basename(newFile));
+              }
+            }
+          } else {
+            // No LLM folder selection - use first folder as default within current directory
+            const firstFolder = selectedTemplate.folderStructure[0].replace(/^\.\//, '');
+            newFile = path.join(mainDir, firstFolder, path.basename(newFile));
+          }
+        } else {
+          // Template has no predefined folders - use naming structure within current directory
+          const namingStructure = selectedTemplate.namingStructure;
+          if (namingStructure && namingStructure !== '{file_title}') {
+            newFile = await replacePromptKeys(
+              namingStructure,
+              promptObj,
+              mainDir,
+              fileExt,
+              fileCase
+            );
+          } else {
+            // Default to current directory with new filename
+            newFile = path.join(mainDir, await replacePromptKeys(
+              '{file_title}',
+              promptObj,
+              mainDir,
+              fileExt,
+              fileCase
+            ));
+          }
+        }
+      }
 
       filenameSpinner.stop("Filename generated!");
 

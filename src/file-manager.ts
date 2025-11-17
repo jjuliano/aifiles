@@ -1150,7 +1150,7 @@ ${yellow('Field Definitions - What to extract (~/.aifiles/fields.json):')}
   100+ fields: file_title, music_artist, picture_date_taken, etc.
   REQUIRED FIELDS (must be present and non-empty):
             • internal_file_title: Descriptive title for the file
-            • internal_file_category: Primary category (work/personal/project/etc.)
+            • llm_category_1: LLM-suggested primary category (work/personal/project/etc.)
             • internal_file_summary: Brief summary of file contents
             • internal_file_tags: Keywords/tags as comma-separated string
   Optional fields for music, pictures, videos, documents, archives, etc.

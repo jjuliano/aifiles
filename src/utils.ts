@@ -194,17 +194,17 @@ export const createDefaultConfig = async (): Promise<void> => {
       VIDEOS_DIRECTORY: 'Videos',
       ARCHIVES_DIRECTORY: 'Archives',
       OTHERS_DIRECTORY: 'Others',
-      DOCUMENT_FILENAME_FORMAT: '{file_category_1}/{file_category_2}/{file_category_3}--{file_title}',
+      DOCUMENT_FILENAME_FORMAT: '{file_title}',
       DOCUMENT_FILE_NAME_CASE: 'snake',
       MUSIC_FILENAME_FORMAT: '{music_artist}/{music_album}/{music_track_number}--{music_track_title}',
       MUSIC_FILE_NAME_CASE: 'kebab',
       PICTURES_FILENAME_FORMAT: '{picture_date_taken}/{file_title}',
       PICTURES_FILE_NAME_CASE: 'lower_snake',
-      VIDEOS_FILENAME_FORMAT: '{file_category_1}/{file_category_2}/{file_title}',
+      VIDEOS_FILENAME_FORMAT: '{file_title}',
       VIDEOS_FILE_NAME_CASE: 'upper_snake',
-      ARCHIVES_FILENAME_FORMAT: '{file_category_1}/{file_category_2}/{file_title}--{file_date_created}',
+      ARCHIVES_FILENAME_FORMAT: '{file_title}',
       ARCHIVES_FILE_NAME_CASE: 'pascal',
-      OTHERS_FILENAME_FORMAT: '{file_category_1}/{file_category_2}/{file_title}',
+      OTHERS_FILENAME_FORMAT: '{file_title}',
       OTHERS_FILE_NAME_CASE: 'pascal',
       MOVE_FILE_OPERATION: true,
       MAX_MEDIA_DATA_SOURCES: 50,
@@ -231,6 +231,11 @@ export const createDefaultConfig = async (): Promise<void> => {
       file_category_1: 'Primary category (e.g., work, personal, project)',
       file_category_2: 'Secondary category or subcategory',
       file_category_3: 'Tertiary category or specific type',
+
+      // LLM-suggested categorization prompts (preferred for new templates)
+      llm_category_1: 'LLM-suggested primary category (e.g., work, personal, project)',
+      llm_category_2: 'LLM-suggested secondary category or subcategory',
+      llm_category_3: 'LLM-suggested tertiary category or specific type',
 
       // File title prompt
       file_title: 'Short, concise, and informative title for the file (keep under 50 characters when possible)',
