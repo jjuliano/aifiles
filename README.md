@@ -1,6 +1,6 @@
 <div align="center">
   <div>
-    <img src=".github/screencapture.gif" alt="AIFiles"/>
+    <a href="https://asciinema.org/a/756387"><img src="https://asciinema.org/a/756387.svg" alt="AIFiles Demo"/></a>
     <h1 align="center">🤖 AIFiles</h1>
   </div>
 	<p>A powerful CLI application that helps you organize and manage your files using AI.</p>
@@ -8,7 +8,7 @@
 src="https://img.shields.io/npm/v/aifiles" alt="Current version"></a>
 </div>
 
-⚠️ This app uses AI models 🤖, which could raise privacy concerns. Please be cautious when sharing personal information.🔒
+⚠️ This app usescloud-based AAI models 🤖, which could raise privacy concerns. Please be cautious when sharing personal informatio, or use a local LLM.🔒
 
 ## ✨ What's New in Version 2.0
 
