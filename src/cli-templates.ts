@@ -31,6 +31,50 @@ const argv = cli({
 
 const templateManager = new FolderTemplateManager();
 
+async function showTemplate(templateId: string) {
+  const templates = await templateManager.loadTemplates();
+  const template = templates.find((t) => t.id === templateId);
+
+  if (!template) {
+    console.log(red(`\n✗ Template '${templateId}' not found\n`));
+    console.log('Available templates:');
+    templates.forEach((t, index) => {
+      console.log(`  ${index + 1}. ${t.id} - ${t.name}`);
+    });
+    console.log('');
+    return;
+  }
+
+  console.log(lightCyan(`\n📋 Template Details: ${template.name}\n`));
+
+  console.log(`${green('Basic Information:')}`);
+  console.log(`  🆔 ID: ${template.id}`);
+  console.log(`  📝 Name: ${template.name}`);
+  console.log(`  📖 Description: ${template.description}`);
+
+  console.log(`\n${green('Organization Settings:')}`);
+  console.log(`  📂 Base Path: ${template.basePath}`);
+  console.log(`  🏷️  Naming Structure: ${template.namingStructure}`);
+  console.log(`  🔤 File Name Case: ${template.fileNameCase || 'snake'}`);
+
+  console.log(`\n${green('Automation Settings:')}`);
+  console.log(`  👀 Watch for Changes: ${template.watchForChanges ? green('Enabled') : yellow('Disabled')}`);
+  console.log(`  🤖 Auto Organize: ${template.autoOrganize ? green('Enabled') : yellow('Disabled')}`);
+
+  if (template.folderStructure && template.folderStructure.length > 0) {
+    console.log(`\n${green('Folder Structure:')}`);
+    console.log(`  📁 Total Folders: ${template.folderStructure.length}`);
+    console.log(`  📂 Folder Paths:`);
+    template.folderStructure.forEach(folder => {
+      console.log(`    └─ ${folder}`);
+    });
+  } else {
+    console.log(`\n${green('Folder Structure:')} None (flat organization)`);
+  }
+
+  console.log('');
+}
+
 async function listTemplates() {
   console.log(lightCyan('\n📁 Folder Templates\n'));
 
@@ -51,10 +95,25 @@ async function listTemplates() {
 
     console.log(`${statusIcon}${autoIcon} ${green(`${index + 1}.`)} ${lightCyan(template.name)}`);
     console.log(`      ${template.description}`);
-    console.log(`      📂 Path: ${template.basePath}`);
-    console.log(`      🏷️  Naming: ${template.namingStructure}`);
-    console.log(`      🔤 Case: ${template.fileNameCase || 'snake'}`);
-    console.log(`      🆔 ID: ${template.id}`);
+    console.log(`      📂 Base Path: ${template.basePath}`);
+    console.log(`      🏷️  Naming Structure: ${template.namingStructure}`);
+    console.log(`      🔤 File Name Case: ${template.fileNameCase || 'snake'}`);
+    console.log(`      🆔 Template ID: ${template.id}`);
+    console.log(`      👀 Watch for Changes: ${template.watchForChanges ? 'Enabled' : 'Disabled'}`);
+    console.log(`      🤖 Auto Organize: ${template.autoOrganize ? 'Enabled' : 'Disabled'}`);
+
+    if (template.folderStructure && template.folderStructure.length > 0) {
+      console.log(`      📁 Folder Structure: ${template.folderStructure.length} folders`);
+      template.folderStructure.slice(0, 5).forEach(folder => {
+        console.log(`        └─ ${folder}`);
+      });
+      if (template.folderStructure.length > 5) {
+        console.log(`        └─ ... and ${template.folderStructure.length - 5} more folders`);
+      }
+    } else {
+      console.log(`      📁 Folder Structure: None (flat organization)`);
+    }
+
     console.log('');
   });
 }
@@ -267,6 +326,125 @@ async function disableTemplate(templateId: string) {
   console.log(yellow(`\n✓ Watching disabled for '${template.name}'\n`));
 }
 
+async function importFolderStructure(templateId: string, structurePath: string) {
+  const templates = await templateManager.loadTemplates();
+  const template = templates.find((t) => t.id === templateId);
+
+  if (!template) {
+    console.log(red(`\n✗ Template '${templateId}' not found\n`));
+    return;
+  }
+
+  console.log(lightCyan(`\n📥 Importing folder structure for '${template.name}'...\n`));
+
+  await templateManager.importFolderStructure(templateId, structurePath);
+
+  const updatedTemplate = templateManager.getTemplate(templateId);
+  const folderCount = updatedTemplate?.folderStructure?.length || 0;
+
+  console.log(green(`\n✓ Imported ${folderCount} folders into template '${template.name}'\n`));
+  console.log(`Run ${green(`aifiles-templates create-folders ${templateId}`)} to create these folders.\n`);
+}
+
+async function createFoldersFromTemplate(templateId: string) {
+  const templates = await templateManager.loadTemplates();
+  const template = templates.find((t) => t.id === templateId);
+
+  if (!template) {
+    console.log(red(`\n✗ Template '${templateId}' not found\n`));
+    return;
+  }
+
+  if (!template.folderStructure || template.folderStructure.length === 0) {
+    console.log(yellow(`\n⚠️  Template '${template.name}' has no folder structure defined\n`));
+    console.log(`Use ${green(`aifiles-templates import-structure ${templateId} <file>`)} to add folder structure.\n`);
+    return;
+  }
+
+  console.log(lightCyan(`\n📁 Creating ${template.folderStructure.length} folders from template '${template.name}'...\n`));
+
+  const basePath = await templateManager.createFolderFromTemplate(templateId);
+
+  console.log(green(`\n✓ Created folder structure at: ${basePath}\n`));
+  console.log(`Total folders created: ${template.folderStructure.length}\n`);
+}
+
+async function exportTemplate(templateId: string, outputPath: string) {
+  const templates = await templateManager.loadTemplates();
+  const template = templates.find((t) => t.id === templateId);
+
+  if (!template) {
+    console.log(red(`\n✗ Template '${templateId}' not found\n`));
+    return;
+  }
+
+  console.log(lightCyan(`\n💾 Exporting template '${template.name}'...\n`));
+
+  await templateManager.exportTemplate(templateId, outputPath);
+
+  console.log(green(`\n✓ Template exported to: ${outputPath}\n`));
+  console.log(`Use ${green(`aifiles-templates import-template <file>`)} to import on another system.\n`);
+}
+
+async function importTemplate(inputPath: string) {
+  console.log(lightCyan(`\n📥 Importing template from ${inputPath}...\n`));
+
+  await templateManager.importTemplate(inputPath);
+
+  console.log(green(`\n✓ Template imported successfully\n`));
+  console.log(`Run ${green('aifiles-templates list')} to see all templates.\n`);
+}
+
+async function createFromStructure() {
+  console.log(lightCyan('\n➕ Create Template from Folder Structure\n'));
+
+  const id = await text({
+    message: 'Template ID:',
+    placeholder: 'e.g., media-library',
+    validate: (value) => {
+      if (!value) return 'ID is required';
+      if (!/^[a-z0-9-]+$/.test(value)) return 'ID must be lowercase alphanumeric with dashes';
+    },
+  }) as string;
+
+  const name = await text({
+    message: 'Template name:',
+    placeholder: 'e.g., Media Library',
+    validate: (value) => {
+      if (!value) return 'Name is required';
+    },
+  }) as string;
+
+  const description = await text({
+    message: 'Description:',
+    placeholder: 'What is this template for?',
+    validate: (value) => {
+      if (!value) return 'Description is required';
+    },
+  }) as string;
+
+  const basePath = await text({
+    message: 'Base path:',
+    placeholder: '~/Media',
+    validate: (value) => {
+      if (!value) return 'Base path is required';
+    },
+  }) as string;
+
+  const structureFile = await text({
+    message: 'Folder structure file:',
+    placeholder: './my-folder-structure.txt',
+    validate: (value) => {
+      if (!value) return 'Structure file is required';
+    },
+  }) as string;
+
+  await templateManager.createTemplateWithStructure(id, name, description, basePath, structureFile);
+
+  console.log(green(`\n✓ Template '${name}' created with folder structure\n`));
+  console.log(`Run ${green(`aifiles-templates create-folders ${id}`)} to create the folders.\n`);
+}
+
 async function showInteractiveMenu() {
   console.log(lightCyan('\n🎛️  AIFiles Template Manager\n'));
 
@@ -278,6 +456,7 @@ async function showInteractiveMenu() {
       { value: 'list', label: '📋 List all templates' },
       { value: 'add', label: '➕ Add new template' },
       ...(templates.length > 0 ? [
+        { value: 'show', label: '🔍 Show template details' },
         { value: 'edit', label: '✏️  Edit template' },
         { value: 'enable', label: '🟢 Enable watching' },
         { value: 'disable', label: '🟡 Disable watching' },
@@ -301,6 +480,22 @@ async function showInteractiveMenu() {
         case 'list':
           await listTemplates();
           break;
+        case 'show': {
+          if (templates.length === 0) {
+            console.log(yellow('No templates to show.\n'));
+            break;
+          }
+          const showOptions = templates.map((t, i) => ({
+            value: t.id,
+            label: `${i + 1}. ${t.name} (${t.id})`,
+          }));
+          const templateToShow = await select({
+            message: 'Select template to show details:',
+            options: showOptions,
+          }) as string;
+          await showTemplate(templateToShow);
+          break;
+        }
         case 'add':
           await addTemplate();
           break;
@@ -391,19 +586,25 @@ async function showInteractiveMenu() {
       console.log(`
 ${lightCyan("🎛️  AIFiles Template Manager")} - Manage folder templates
 
-${argv.help?.description}
+Manage folder templates for AIFiles
 
 ${green("USAGE")}
   aifiles-templates [command] [template-id] [options]
 
 ${green("COMMANDS")}
-  list                    List all folder templates
-  add                     Add a new folder template (interactive)
-  edit <template-id>      Edit an existing folder template
-  remove <template-id>    Remove a folder template
-  enable <template-id>    Enable watching for a template
-  disable <template-id>   Disable watching for a template
-  menu                    Interactive menu for all operations
+  list                                List all folder templates (with full settings)
+  show <template-id>                  Show detailed information for a specific template
+  add                                 Add a new folder template (interactive)
+  edit <template-id>                  Edit an existing folder template
+  remove <template-id>                Remove a folder template
+  enable <template-id>                Enable watching for a template
+  disable <template-id>               Disable watching for a template
+  create-from-structure               Create template with folder structure (interactive)
+  import-structure <id> <file>        Import folder structure from file
+  create-folders <template-id>        Create folders from template structure
+  export <template-id> <file>         Export template to JSON file
+  import-template <file>              Import template from JSON file
+  menu                                Interactive menu for all operations
 
 ${green("OPTIONS")}
   -i, --interactive       Run in interactive mode (same as 'menu')
@@ -412,7 +613,11 @@ ${green("OPTIONS")}
 ${green("EXAMPLES")}
   aifiles-templates list
   aifiles-templates add
-  aifiles-templates edit abc123
+  aifiles-templates create-from-structure
+  aifiles-templates import-structure media-library ./structure.txt
+  aifiles-templates create-folders media-library
+  aifiles-templates export media-library ./my-template.json
+  aifiles-templates import-template ./my-template.json
   aifiles-templates menu
 `);
       process.exit(0);
@@ -431,6 +636,14 @@ ${green("EXAMPLES")}
       await showInteractiveMenu();
     } else if (command === 'list' || !command) {
       await listTemplates();
+    } else if (command === 'show') {
+      if (!templateId) {
+        console.log(red('\n✗ Template ID required for show command\n'));
+        console.log('Usage:', green('aifiles-templates show <template-id>'));
+        console.log('Use', green('aifiles-templates list'), 'to see available templates.\n');
+        process.exit(1);
+      }
+      await showTemplate(templateId);
     } else if (command === 'add') {
       if (isNonInteractive) {
         console.log(red('✗ Add command requires interactive mode'));
@@ -488,6 +701,42 @@ ${green("EXAMPLES")}
         process.exit(1);
       }
       await disableTemplate(templateId);
+    } else if (command === 'create-from-structure') {
+      if (isNonInteractive) {
+        console.log(red('✗ create-from-structure command requires interactive mode'));
+        process.exit(1);
+      }
+      await createFromStructure();
+    } else if (command === 'import-structure') {
+      const structureFile = process.argv[4];
+      if (!templateId || !structureFile) {
+        console.log(red('\n✗ Template ID and structure file required\n'));
+        console.log('Usage:', green('aifiles-templates import-structure <template-id> <file>'));
+        process.exit(1);
+      }
+      await importFolderStructure(templateId, structureFile);
+    } else if (command === 'create-folders') {
+      if (!templateId) {
+        console.log(red('\n✗ Template ID required\n'));
+        console.log('Usage:', green('aifiles-templates create-folders <template-id>'));
+        process.exit(1);
+      }
+      await createFoldersFromTemplate(templateId);
+    } else if (command === 'export') {
+      const outputFile = process.argv[4];
+      if (!templateId || !outputFile) {
+        console.log(red('\n✗ Template ID and output file required\n'));
+        console.log('Usage:', green('aifiles-templates export <template-id> <file>'));
+        process.exit(1);
+      }
+      await exportTemplate(templateId, outputFile);
+    } else if (command === 'import-template') {
+      if (!templateId) {
+        console.log(red('\n✗ Template file required\n'));
+        console.log('Usage:', green('aifiles-templates import-template <file>'));
+        process.exit(1);
+      }
+      await importTemplate(templateId);
     } else {
       console.log(red(`\n✗ Unknown command: ${command}\n`));
       console.log('Run', green('aifiles-templates --help'), 'for available commands.');

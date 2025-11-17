@@ -91,12 +91,12 @@
     "npm": ">=9.0.0"
   },
   "dependencies": {
+    "@langchain/community": "^0.2.0",
+    "@langchain/core": "^0.2.0",
+    "@langchain/openai": "^0.0.28",
     "@types/blessed": "^0.1.25",
     "better-sqlite3": "^12.4.1",
     "blessed": "^0.1.81",
-    "langchain": "^0.2.0",
-    "@langchain/core": "^0.2.0",
-    "@langchain/openai": "^0.0.28",
-    "@langchain/community": "^0.2.0"
+    "langchain": "^0.2.0"
   }
 }

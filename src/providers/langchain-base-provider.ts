@@ -42,33 +42,46 @@ Please respond with a valid JSON object. Format your response as JSON only, with
       const response = await this.model.invoke(jsonPrompt);
       const rawContent = typeof response.content === 'string' ? response.content : JSON.stringify(response.content);
 
-
-      // Clean and parse the response
-      const cleanedContent = this.cleanJsonResponse(rawContent);
-
-
-      // Validate that it's proper JSON by parsing it
-      const parsed = JSON.parse(cleanedContent);
-
-      // Return the validated JSON as a string
-      return JSON.stringify(parsed);
+      // Return the raw response - let parseJson in utils handle cleaning and validation
+      return rawContent;
     } catch (error) {
-      throw new Error(`LangChain ${this.name} API error: ${error instanceof Error ? error.message : String(error)}`);
+      // Enhanced error with raw response for debugging
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      throw new Error(`LangChain ${this.name} API error: ${errorMsg}`);
     }
   }
 
   private cleanJsonResponse(response: string): string {
-    // Remove markdown code blocks if present
-    let cleaned = response.replace(/```json\s*/gi, '').replace(/```\s*$/gi, '');
-    cleaned = cleaned.replace(/```\s*/gi, ''); // Remove any remaining backticks
+    let cleaned = response.trim();
 
-    // Trim whitespace
+    // Remove opening code fence with optional language specifier
+    cleaned = cleaned.replace(/^```(?:json|jsonc)?\s*\n?/i, '');
+
+    // Remove closing code fence
+    cleaned = cleaned.replace(/\n?```\s*$/i, '');
+
+    // Also handle backticks without language specifier
+    cleaned = cleaned.replace(/^`+\s*\n?/, '');
+    cleaned = cleaned.replace(/\n?`+\s*$/, '');
+
+    // Trim again after stripping fences
     cleaned = cleaned.trim();
 
-    // Remove any trailing commas before closing braces/brackets
-    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+    // Handle LLM wrapping entire JSON in quotes: "{ ... }"
+    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+      let inner = cleaned.slice(1, -1);
+      // Only unwrap if the inner content looks like JSON
+      if (inner.trim().startsWith('{') || inner.trim().startsWith('[')) {
+        // Unescape any escaped quotes if present
+        inner = inner.replace(/\\"/g, '"');
+        cleaned = inner;
+      }
+    }
 
-    // Handle multiple closing braces by finding balanced JSON
+    // Trim one final time
+    cleaned = cleaned.trim();
+
+    // Handle extra closing braces by finding balanced JSON
     const startIndex = cleaned.indexOf('{');
     if (startIndex === -1) {
       throw new Error('No JSON object found in response');
@@ -100,6 +113,9 @@ Please respond with a valid JSON object. Format your response as JSON only, with
     } else {
       cleaned = cleaned.substring(startIndex, endIndex + 1);
     }
+
+    // Remove any trailing commas before closing braces/brackets
+    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
 
     return cleaned;
   }

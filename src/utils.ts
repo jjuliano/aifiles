@@ -35,11 +35,13 @@ async function makePictureCaption (
 }
 
 export type ConfigType = {
-  LLM_PROVIDER?: 'openai' | 'grok' | 'ollama' | 'lmstudio' | 'deepseek';
+  LLM_PROVIDER?: 'openai' | 'grok' | 'ollama' | 'lmstudio' | 'deepseek' | 'gemini' | 'copilot';
   LLM_MODEL?: string;
   LLM_BASE_URL?: string;
   GROK_API_KEY?: string;
   DEEPSEEK_API_KEY?: string;
+  GEMINI_API_KEY?: string;
+  COPILOT_API_KEY?: string;
   VIDEOS_FILE_NAME_CASE?: string
   VIDEOS_FILENAME_FORMAT?: string
   OTHERS_FILE_NAME_CASE?: string;
@@ -466,101 +468,435 @@ export const parseJson = async (jsonString: string | undefined): Promise<any> =>
     return await new Promise((resolve, reject) => {
       try {
         if (typeof jsonString === 'string') {
-          // Strip markdown code fences if present (e.g., ```json ... ```)
           let cleaned = jsonString.trim();
 
-          // Remove opening code fence with optional language specifier
-          cleaned = cleaned.replace(/^```(?:json|jsonc)?\s*\n?/i, '');
+          // Phase 1: Remove markdown and code formatting
+          cleaned = removeMarkdownFormatting(cleaned);
 
-          // Remove closing code fence
+          // Phase 2: Extract JSON from mixed content
+          cleaned = extractJsonContent(cleaned);
+
+          // Phase 3: Fix common JSON syntax errors
+          cleaned = fixCommonJsonErrors(cleaned);
+
+          // Phase 4: Balance braces and brackets
+          cleaned = balanceJsonStructure(cleaned);
+
+          // Phase 5: Final cleanup and validation
+          cleaned = finalJsonCleanup(cleaned);
+
+          // Attempt to parse the cleaned JSON with fallback strategies
+          try {
+            resolve(JSON.parse(cleaned));
+          } catch (parseError) {
+            // Fallback: Try to extract and fix the JSON around the error position
+            const fallbackResult = tryFallbackJsonParsing(cleaned, parseError);
+            if (fallbackResult) {
+              resolve(fallbackResult);
+            } else {
+              throw parseError;
+            }
+          }
+        } else {
+          reject(new Error('JSON string is undefined or not a string'));
+        }
+      } catch (err) {
+        reject(err);
+      }
+    });
+  } catch (err) {
+    console.error(`Error parsing JSON: ${err}`);
+    throw err;
+  }
+};
+
+// Helper function to remove markdown and code formatting
+function removeMarkdownFormatting(text: string): string {
+  let cleaned = text.trim();
+
+  // Remove code fences with language specifiers
+  cleaned = cleaned.replace(/^```(?:json|jsonc|javascript|js)?\s*\n?/i, '');
           cleaned = cleaned.replace(/\n?```\s*$/i, '');
 
-          // Also handle backticks without language specifier
-          cleaned = cleaned.replace(/^`+\s*\n?/, '');
-          cleaned = cleaned.replace(/\n?`+\s*$/, '');
+  // Remove inline code formatting
+  cleaned = cleaned.replace(/^`+\s*/, '');
+  cleaned = cleaned.replace(/\s*`+$/, '');
 
-          // Trim again after stripping fences
-          cleaned = cleaned.trim();
+  // Remove common LLM prefixes/suffixes
+  cleaned = cleaned.replace(/^(Here is the JSON|JSON response|Response|Output):\s*/i, '');
+  cleaned = cleaned.replace(/\s*(That's the JSON|End of response|Note:.*)$/i, '');
+
+  return cleaned.trim();
+}
+
+// Helper function to extract JSON content from mixed text
+function extractJsonContent(text: string): string {
+  let cleaned = text.trim();
 
           // Handle LLM wrapping entire JSON in quotes: "{ ... }"
-          // Check if it starts with " and ends with " and contains { or [
           if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
             let inner = cleaned.slice(1, -1);
-            // Only unwrap if the inner content looks like JSON
             if (inner.trim().startsWith('{') || inner.trim().startsWith('[')) {
-              // Unescape any escaped quotes if present
-              inner = inner.replace(/\\"/g, '"');
+      // Unescape quotes and use inner content
+      inner = inner.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
               cleaned = inner;
             }
           }
 
-          // Trim one final time
-          cleaned = cleaned.trim();
+  // Try to find JSON object/array boundaries
+  const jsonStart = cleaned.search(/[{\[]/);
+  const jsonEnd = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
 
-          // Handle extra closing braces by finding balanced JSON
-          const startIndex = cleaned.indexOf('{');
-          if (startIndex !== -1) {
+  if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+    // Extract the JSON portion
+    let jsonContent = cleaned.substring(jsonStart, jsonEnd + 1);
+
+    // Check if this looks like valid JSON structure
+    const openBraces = (jsonContent.match(/{/g) || []).length;
+    const closeBraces = (jsonContent.match(/}/g) || []).length;
+    const openBrackets = (jsonContent.match(/\[/g) || []).length;
+    const closeBrackets = (jsonContent.match(/\]/g) || []).length;
+
+    // If braces/brackets are reasonably balanced, use this extraction
+    if (Math.abs(openBraces - closeBraces) <= 2 && Math.abs(openBrackets - closeBrackets) <= 2) {
+      cleaned = jsonContent;
+    }
+  }
+
+  return cleaned.trim();
+}
+
+// Helper function to fix common JSON syntax errors
+function fixCommonJsonErrors(text: string): string {
+  let cleaned = text.trim();
+
+  // Fix missing quotes around unquoted keys
+  cleaned = cleaned.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+
+  // Fix single quotes to double quotes
+  cleaned = cleaned.replace(/'/g, '"');
+
+  // Fix trailing commas before closing braces/brackets
+  cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+
+  // Fix missing commas between key-value pairs
+  cleaned = cleaned.replace(/"\s*"([^"]+)"\s*:/g, '","$1":');
+
+  // Fix boolean values (true/false) - ensure they're lowercase
+  cleaned = cleaned.replace(/\bTrue\b/g, 'true');
+  cleaned = cleaned.replace(/\bFalse\b/g, 'false');
+  cleaned = cleaned.replace(/\bTRUE\b/g, 'true');
+  cleaned = cleaned.replace(/\bFALSE\b/g, 'false');
+
+  // Fix null values
+  cleaned = cleaned.replace(/\bNone\b/g, 'null');
+  cleaned = cleaned.replace(/\bNULL\b/g, 'null');
+
+  // Handle escaped characters properly
+  cleaned = cleaned.replace(/\\'/g, "'"); // Unescape single quotes
+  cleaned = cleaned.replace(/\\n/g, '\\n'); // Keep literal newlines as escaped
+
+  return cleaned.trim();
+}
+
+// Helper function to balance JSON structure
+function balanceJsonStructure(text: string): string {
+  let cleaned = text.trim();
+
+  // Handle objects
+  if (cleaned.startsWith('{') || cleaned.includes('{')) {
+    const startIdx = cleaned.indexOf('{');
+    if (startIdx !== -1) {
             let braceCount = 0;
-            let endIndex = -1;
+      let inString = false;
+      let escapeNext = false;
+      let endIdx = -1;
 
-            for (let i = startIndex; i < cleaned.length; i++) {
-              if (cleaned[i] === '{') {
+      for (let i = startIdx; i < cleaned.length; i++) {
+        const char = cleaned[i];
+
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
+
+        if (char === '\\') {
+          escapeNext = true;
+          continue;
+        }
+
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
+
+        if (!inString) {
+          if (char === '{') {
                 braceCount++;
-              } else if (cleaned[i] === '}') {
+          } else if (char === '}') {
                 braceCount--;
                 if (braceCount === 0) {
-                  endIndex = i;
+              endIdx = i;
                   break;
+            }
                 }
               }
             }
 
-            if (endIndex !== -1) {
-              // Extract properly balanced JSON
-              cleaned = cleaned.substring(startIndex, endIndex + 1);
+      if (endIdx !== -1) {
+        cleaned = cleaned.substring(startIdx, endIdx + 1);
             } else {
-              // Fallback: remove trailing extra braces
+        // Fallback: remove extra closing braces
               cleaned = cleaned.replace(/}+$/g, '}');
             }
           }
 
-          // Handle LLM returning JSON properties without wrapping braces
-          // E.g.: "field":"value","field2":"value2"
-          // Check if it starts with " followed by alphanumeric (not { or [)
-          if (cleaned.startsWith('"') && !cleaned.startsWith('"{') && !cleaned.startsWith('"[')) {
-            // Check if it contains JSON-like key:value patterns
-            if (cleaned.includes('":"') || cleaned.includes('":')) {
-              // Wrap in braces
-              cleaned = '{' + cleaned + '}';
+    // Ensure object starts and ends with braces
+    if (!cleaned.startsWith('{')) {
+      cleaned = '{' + cleaned;
+    }
+    if (!cleaned.endsWith('}')) {
+      cleaned = cleaned + '}';
+    }
+  }
+
+  // Handle arrays
+  else if (cleaned.startsWith('[') || cleaned.includes('[')) {
+    const startIdx = cleaned.indexOf('[');
+    if (startIdx !== -1) {
+      let bracketCount = 0;
+      let inString = false;
+      let escapeNext = false;
+      let endIdx = -1;
+
+      for (let i = startIdx; i < cleaned.length; i++) {
+        const char = cleaned[i];
+
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
+
+        if (char === '\\') {
+          escapeNext = true;
+          continue;
+        }
+
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
+
+        if (!inString) {
+          if (char === '[') {
+            bracketCount++;
+          } else if (char === ']') {
+            bracketCount--;
+            if (bracketCount === 0) {
+              endIdx = i;
+              break;
             }
           }
-          
-          // Handle extra closing braces: }} or }}} etc.
-          // Remove duplicate closing braces at the end
-          while (cleaned.endsWith('}}') || cleaned.endsWith(']]')) {
-            cleaned = cleaned.slice(0, -1);
+        }
+      }
+
+      if (endIdx !== -1) {
+        cleaned = cleaned.substring(startIdx, endIdx + 1);
+      } else {
+        // Fallback: remove extra closing brackets
+        cleaned = cleaned.replace(/\]+$/g, ']');
+      }
+    }
+
+    // Ensure array starts and ends with brackets
+    if (!cleaned.startsWith('[')) {
+      cleaned = '[' + cleaned;
+    }
+    if (!cleaned.endsWith(']')) {
+      cleaned = cleaned + ']';
+    }
+  }
+
+  return cleaned.trim();
+}
+
+// Helper function for fallback JSON parsing when standard parsing fails
+function tryFallbackJsonParsing(text: string, parseError: any): any | null {
+  try {
+
+    // Strategy 1: Try to extract JSON from anywhere in the text
+    // Look for the last complete JSON object (most likely to be the intended response)
+    const jsonRegex = /{[^{}]*}/g;
+    let matches = text.match(jsonRegex);
+
+    if (matches && matches.length > 0) {
+      // Try matches in reverse order (largest/most complete first)
+      for (const match of matches.reverse()) {
+        try {
+          const parsed = JSON.parse(match);
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length >= 3) {
+            // Must have at least 3 fields to be considered a valid response
+            return parsed;
           }
-          
-          // Handle extra opening braces: {{ or {{{ etc.
+        } catch {
+          // Try next match
+        }
+      }
+    }
+
+    // Strategy 2: Brace counting approach - find first { and count to matching }
+    const startBrace = text.indexOf('{');
+    if (startBrace !== -1) {
+      let braceCount = 0;
+      let endBrace = -1;
+
+      for (let i = startBrace; i < text.length; i++) {
+        if (text[i] === '{') braceCount++;
+        else if (text[i] === '}') {
+          braceCount--;
+          if (braceCount === 0) {
+            endBrace = i;
+            break;
+          }
+        }
+      }
+
+      if (endBrace !== -1 && endBrace > startBrace) {
+        const jsonCandidate = text.substring(startBrace, endBrace + 1);
+
+        // Try multiple cleaning approaches
+        const candidates = [
+          jsonCandidate, // Original
+          jsonCandidate.replace(/,(\s*[}\]])/g, '$1'), // Remove trailing commas
+          jsonCandidate.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":'), // Quote unquoted keys
+          jsonCandidate.replace(/:\s*'([^']*)'/g, ': "$1"'), // Fix single quotes in values
+          jsonCandidate.replace(/:\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*([,}\]])/g, ': "$1"$2'), // Quote unquoted string values
+          jsonCandidate.replace(/:\s*(true|false|null)\s*([,}\]])/g, ': $1$2'), // Keep boolean/null as-is
+          jsonCandidate.replace(/:\s*(\d+(?:\.\d+)?)\s*([,}\]])/g, ': $1$2'), // Keep numbers as-is
+        ];
+
+        for (const candidate of candidates) {
+          try {
+            const parsed = JSON.parse(candidate);
+            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length >= 3) {
+              return parsed;
+            }
+          } catch {
+            // Try next candidate
+          }
+        }
+      }
+    }
+
+    // Strategy 3: Look for JSON-like patterns with better regex
+    const betterJsonRegex = /\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g;
+    matches = text.match(betterJsonRegex);
+
+    if (matches) {
+      for (const match of matches.reverse()) {
+        try {
+          const parsed = JSON.parse(match);
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length >= 3) {
+            return parsed;
+          }
+        } catch {
+          // Try next match
+        }
+      }
+    }
+
+    // Strategy 4: Last resort - try to find any valid JSON object
+    // Split by newlines and look for JSON on each line
+    const lines = text.split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed && typeof parsed === 'object' && Object.keys(parsed).length >= 3) {
+            return parsed;
+          }
+        } catch {
+          // Continue
+        }
+      }
+    }
+
+    return null; // No valid JSON found
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Read file content for LLM processing (always full content for maximum context)
+ */
+export async function readFileContent(filePath: string): Promise<string> {
+  try {
+    // Always read the full file content for maximum context
+    const fullContent = await fs.readFile(filePath, 'utf-8').catch(() => '');
+
+    // Log content size for transparency
+    const contentSizeKB = Math.round(fullContent.length / 1024);
+    if (contentSizeKB > 100) {
+      console.log(`     📄 Large file detected: ${contentSizeKB}KB - sending full content for maximum context`);
+    }
+
+    return fullContent;
+  } catch (error) {
+    console.warn(`Failed to read file ${filePath}:`, error);
+    return '';
+  }
+}
+
+// Helper function for final JSON cleanup and validation
+function finalJsonCleanup(text: string): string {
+  let cleaned = text.trim();
+
+  // Remove any remaining extra braces/brackets
           while (cleaned.startsWith('{{') || cleaned.startsWith('[[')) {
             cleaned = cleaned.slice(1);
           }
+  while (cleaned.endsWith('}}') || cleaned.endsWith(']]')) {
+    cleaned = cleaned.slice(0, -1);
+  }
+
+  // Remove any leading/trailing non-JSON characters
+  cleaned = cleaned.replace(/^[^{[\s]*/, '');
+  cleaned = cleaned.replace(/[^{\]}\s]*$/, '');
           
           // Final trim
           cleaned = cleaned.trim();
           
-          resolve(JSON.parse(cleaned))
-        } else {
-          reject(new Error('JSON string is undefined or not a string'))
-        }
-      } catch (err) {
-        reject(err)
-      }
-    })
-  } catch (err) {
-    console.error(`Error parsing JSON: ${err}`)
-    throw err
+  // Handle incomplete JSON responses that might end with partial content
+  if (cleaned && !cleaned.endsWith('}') && !cleaned.endsWith(']')) {
+    // If it looks like a partial object, try to complete it
+    const openBraces = (cleaned.match(/{/g) || []).length;
+    const closeBraces = (cleaned.match(/}/g) || []).length;
+    const openBrackets = (cleaned.match(/\[/g) || []).length;
+    const closeBrackets = (cleaned.match(/\]/g) || []).length;
+
+    if (openBraces > closeBraces) {
+      // Missing closing braces
+      cleaned += '}'.repeat(openBraces - closeBraces);
+    } else if (openBrackets > closeBrackets) {
+      // Missing closing brackets
+      cleaned += ']'.repeat(openBrackets - closeBrackets);
+    }
   }
+
+  // If the result doesn't start with { or [, try to wrap it
+  if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
+    // Check if it looks like key-value pairs
+    if (cleaned.includes('":') || cleaned.includes(':')) {
+      cleaned = '{' + cleaned + '}';
+    } else {
+      // Try to wrap as array
+      cleaned = '[' + cleaned + ']';
+    }
+  }
+
+  return cleaned.trim();
 }
 
 export const replacePromptKeys = async (
@@ -1037,6 +1373,10 @@ export const generatePromptResponse = async (
     apiKey = config.GROK_API_KEY;
   } else if (provider === 'deepseek') {
     apiKey = config.DEEPSEEK_API_KEY;
+  } else if (provider === 'gemini') {
+    apiKey = config.GEMINI_API_KEY;
+  } else if (provider === 'copilot') {
+    apiKey = config.COPILOT_API_KEY;
   }
 
   const llmConfig: LLMConfig = {
@@ -1090,6 +1430,13 @@ export async function addCommentsToFile (
   if (!commentString || typeof commentString !== 'string') {
     return; // Skip if no comment provided or not a string
   }
+
+  // Clean the comment string by removing surrounding quotes that LLMs sometimes add
+  let cleanedComment = commentString.trim();
+  if ((cleanedComment.startsWith('"') && cleanedComment.endsWith('"')) ||
+      (cleanedComment.startsWith("'") && cleanedComment.endsWith("'"))) {
+    cleanedComment = cleanedComment.slice(1, -1);
+  }
   const platform = process.platform
   const filePath = resolvePath(<string>file)
 
@@ -1099,7 +1446,7 @@ export async function addCommentsToFile (
       // eslint-disable-next-line no-case-declarations
       const escapedFilePath = filePath.replace(/(["'$`\\])/g, '\\$1') // escape special characters
       // eslint-disable-next-line no-case-declarations
-      const escapedComment = commentString.replace(/'/g, '\'\'')
+      const escapedComment = cleanedComment.replace(/"/g, '\\"') // escape double quotes for AppleScript
       // eslint-disable-next-line no-case-declarations
       const script = `tell application "Finder" to set comment of (POSIX file "${escapedFilePath}" as alias) to "${escapedComment}"`
       await execa('osascript', ['-e', script])

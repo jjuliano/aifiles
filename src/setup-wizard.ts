@@ -134,6 +134,16 @@ export async function runSetupWizard(): Promise<void> {
           label: 'LM Studio (Local)',
           hint: 'Free, private, runs on your computer',
         },
+        {
+          value: 'gemini',
+          label: 'Google Gemini',
+          hint: 'Google\'s Gemini 1.5, requires API key',
+        },
+        {
+          value: 'copilot',
+          label: 'GitHub Copilot',
+          hint: 'GitHub Copilot, requires API key',
+        },
       ],
     }) as string;
   }
@@ -297,6 +307,67 @@ LLM_MODEL=${model}
 
     selectedModel = model;
     config += `LLM_BASE_URL=${baseUrl}
+LLM_MODEL=${model}
+
+`;
+  } else if (provider === 'gemini') {
+    const apiKey = isNonInteractive ?
+      (process.env.AIFILES_GEMINI_API_KEY || '') :
+      await text({
+        message: 'Enter your Gemini API key:',
+        placeholder: 'AIza...',
+        validate: (value) => {
+          if (!value) return 'API key is required';
+        },
+      }) as string;
+
+    if (!apiKey && isNonInteractive) {
+      console.log(yellow('⚠️  Gemini API key not provided in AIFILES_GEMINI_API_KEY\n'));
+    }
+
+    const model = isNonInteractive ?
+      (process.env.AIFILES_LLM_MODEL || 'gemini-1.5-flash') :
+      await select({
+        message: 'Choose model:',
+        options: [
+          { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (Fast, affordable)' },
+          { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (Best quality)' },
+        ],
+      }) as string;
+
+    selectedModel = model;
+    config += `GEMINI_API_KEY=${apiKey}
+LLM_MODEL=${model}
+
+`;
+  } else if (provider === 'copilot') {
+    const apiKey = isNonInteractive ?
+      (process.env.AIFILES_COPILOT_API_KEY || process.env.AIFILES_GITHUB_TOKEN || '') :
+      await text({
+        message: 'Enter your Copilot/Github API key:',
+        placeholder: 'ghp_... or github_pat_...',
+        validate: (value) => {
+          if (!value) return 'API key is required';
+        },
+      }) as string;
+
+    if (!apiKey && isNonInteractive) {
+      console.log(yellow('⚠️  Copilot API key not provided in AIFILES_COPILOT_API_KEY or AIFILES_GITHUB_TOKEN\n'));
+    }
+
+    const model = isNonInteractive ?
+      (process.env.AIFILES_LLM_MODEL || 'gpt-4o') :
+      await select({
+        message: 'Choose model:',
+        options: [
+          { value: 'gpt-4o', label: 'GPT-4o (Recommended)' },
+          { value: 'gpt-4', label: 'GPT-4' },
+          { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+        ],
+      }) as string;
+
+    selectedModel = model;
+    config += `COPILOT_API_KEY=${apiKey}
 LLM_MODEL=${model}
 
 `;

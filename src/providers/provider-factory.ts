@@ -4,6 +4,8 @@ import { GrokProvider } from './grok-provider.js';
 import { DeepSeekProvider } from './deepseek-provider.js';
 import { OllamaProvider } from './ollama-provider.js';
 import { LMStudioProvider } from './lmstudio-provider.js';
+import { GeminiProvider } from './gemini-provider.js';
+import { CopilotProvider } from './copilot-provider.js';
 
 export class ProviderFactory {
   static createProvider(
@@ -45,6 +47,18 @@ export class ProviderFactory {
           httpClient,
           fs
         );
+
+      case 'gemini':
+        if (!config.apiKey) {
+          throw new Error('Gemini API key is required');
+        }
+        return new GeminiProvider(config.apiKey, config.model || 'gemini-1.5-flash', httpClient);
+
+      case 'copilot':
+        if (!config.apiKey) {
+          throw new Error('Copilot API key is required');
+        }
+        return new CopilotProvider(config.apiKey, config.model || 'gpt-4o', httpClient);
 
       default:
         throw new Error(`Unknown provider: ${config.provider}`);

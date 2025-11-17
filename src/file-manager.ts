@@ -51,6 +51,7 @@ export class FileManager {
   private db: FileDatabase;
   private logger: Logger;
   private screen!: blessed.Widgets.Screen;
+  private initializing: boolean = false; // Flag to track initialization state
   private leftPanel!: blessed.Widgets.ListElement;
   private rightPanel!: blessed.Widgets.BoxElement;
   private statusBar!: blessed.Widgets.BoxElement;
@@ -82,7 +83,7 @@ export class FileManager {
       await this.indexAllFiles();
     } else {
       // on-demand mode: Only index when user expands folders
-      this.logger.log('Index mode: on-demand (folders indexed when expanded)');
+      if (!this.initializing) this.logger.log('Index mode: on-demand (folders indexed when expanded)');
     }
   }
 
@@ -303,10 +304,7 @@ export class FileManager {
     });
 
     this.setupEventHandlers();
-    // Load files asynchronously (fire and forget for UI setup)
-    this.loadFiles().catch(err => {
-      this.logger.error('Failed to load files during setup:', err);
-    });
+    // Note: loadFiles() will be called by showFileList() when the interface starts
   }
 
   private setupEventHandlers(): void {
@@ -413,11 +411,10 @@ export class FileManager {
   }
 
   private async loadFiles(): Promise<void> {
-    this.logger.log(`Loading files for view: ${this.currentView}`);
+    if (!this.initializing) this.logger.log(`Loading files for view: ${this.currentView}`);
 
     // Add timeout to prevent hanging
     const loadTimeout = 15000; // 15 seconds - more aggressive timeout
-    console.log(`⏰ Setting ${loadTimeout}ms timeout for loadFiles`);
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error(`loadFiles timed out after ${loadTimeout}ms`)), loadTimeout);
     });
@@ -428,7 +425,7 @@ export class FileManager {
         timeoutPromise
       ]);
     } catch (error) {
-      this.logger.error('loadFiles failed:', error);
+      if (!this.initializing) this.logger.error('loadFiles failed:', error);
       // Continue with empty file lists on error to prevent complete failure
       if (this.currentView === 'discovered') {
         this.discoveredFiles = [];
@@ -443,31 +440,31 @@ export class FileManager {
   }
 
   private async performLoadFiles(): Promise<void> {
-    console.log('🔄 performLoadFiles starting...');
+    if (!this.initializing) console.log('🔄 performLoadFiles starting...');
     if (this.currentView === 'discovered') {
-      console.log('📊 Current view: discovered');
+      if (!this.initializing) console.log('📊 Current view: discovered');
 
       // Get discovered files from database
-      console.log('🗄️ Fetching discovered files from database...');
+      if (!this.initializing) console.log('🗄️ Fetching discovered files from database...');
       const startDbTime = Date.now();
       const allDiscoveredFiles = this.showOrganized
         ? this.db.getDiscoveredFilesByStatus('organized', 1000)
         : this.db.getDiscoveredFilesByStatus('unorganized', 1000);
       const dbDuration = Date.now() - startDbTime;
-      console.log(`📊 DB query took ${dbDuration}ms, found ${allDiscoveredFiles.length} discovered files`);
+      if (!this.initializing) console.log(`📊 DB query took ${dbDuration}ms, found ${allDiscoveredFiles.length} discovered files`);
 
       // Verify files exist and clean up missing ones
       const startVerifyTime = Date.now();
       this.discoveredFiles = await this.verifyAndCleanDiscoveredFiles(allDiscoveredFiles);
       const verifyDuration = Date.now() - startVerifyTime;
-      console.log(`✅ File verification completed in ${verifyDuration}ms, ${this.discoveredFiles.length} valid files`);
+      if (!this.initializing) console.log(`✅ File verification completed in ${verifyDuration}ms, ${this.discoveredFiles.length} valid files`);
 
       // Always add folder placeholders for directories that haven't been indexed yet
-      console.log('📁 Adding folder placeholders...');
+      if (!this.initializing) console.log('📁 Adding folder placeholders...');
       const startPlaceholderTime = Date.now();
       await this.addConfiguredFolderPlaceholders();
       const placeholderDuration = Date.now() - startPlaceholderTime;
-      console.log(`📁 Folder placeholders added in ${placeholderDuration}ms`);
+      if (!this.initializing) console.log(`📁 Folder placeholders added in ${placeholderDuration}ms`);
 
       // Sort by folder path first, then by filename
       this.discoveredFiles.sort((a, b) => {
@@ -559,7 +556,7 @@ export class FileManager {
     const maxFilesToVerify = 500;
     const filesToVerify = files.slice(0, maxFilesToVerify);
     if (files.length > maxFilesToVerify) {
-      console.log(`⚠️ Limiting verification to ${maxFilesToVerify} most recent files (skipping ${files.length - maxFilesToVerify} older files)`);
+      if (!this.initializing) console.log(`⚠️ Limiting verification to ${maxFilesToVerify} most recent files (skipping ${files.length - maxFilesToVerify} older files)`);
     }
 
     const validFiles: DiscoveredFile[] = [];
@@ -1203,6 +1200,12 @@ ${yellow('Debug Log:')}
         }
       }
     } else {
+      // In organized view, do nothing when pressing Enter on files (for now)
+      const item = this.getItemAtDisplayIndex(this.selectedFileIndex);
+      if (item && item.type === 'file') {
+        // Do nothing for files in organized view
+        return;
+      }
       this.viewFile();
     }
   }
@@ -2094,13 +2097,21 @@ ${yellow('Debug Log:')}
   }
 
   async showFileList(): Promise<void> {
-    // Run file indexing on startup to update database with latest files
-    await this.indexFilesIfNeeded();
+    // Set initialization flag to suppress logging during startup BEFORE any operations
+    this.initializing = true;
 
-    // Default to discovered view (unorganized files)
-    if (this.currentView === 'list') {
-      this.currentView = 'discovered';
-      await this.loadFiles();
+    try {
+      // Run file indexing on startup to update database with latest files
+      await this.indexFilesIfNeeded();
+
+      // Default to discovered view (unorganized files)
+      if (this.currentView === 'list') {
+        this.currentView = 'discovered';
+        await this.loadFiles();
+      }
+    } finally {
+      // Clear initialization flag after startup
+      this.initializing = false;
     }
 
     this.screen.render();
@@ -3012,7 +3023,9 @@ ${yellow('Debug Log:')}
           provider,
           apiKey: provider === 'openai' ? config.OPENAI_API_KEY :
                   provider === 'grok' ? config.GROK_API_KEY :
-                  provider === 'deepseek' ? config.DEEPSEEK_API_KEY : undefined,
+                  provider === 'deepseek' ? config.DEEPSEEK_API_KEY :
+                  provider === 'gemini' ? config.GEMINI_API_KEY :
+                  provider === 'copilot' ? config.COPILOT_API_KEY : undefined,
           model: config.LLM_MODEL,
           baseUrl: config.LLM_BASE_URL,
         });

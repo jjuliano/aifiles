@@ -113,6 +113,24 @@ export function validateConfig(config: any): void {
     );
   }
 
+  if (provider === 'gemini' && !config.GEMINI_API_KEY) {
+    throw new ConfigurationError(
+      'GEMINI_API_KEY is required when using Gemini provider',
+      {
+        hint: 'Add GEMINI_API_KEY=... to ~/.aifiles',
+      }
+    );
+  }
+
+  if (provider === 'copilot' && !config.COPILOT_API_KEY) {
+    throw new ConfigurationError(
+      'COPILOT_API_KEY is required when using Copilot provider',
+      {
+        hint: 'Add COPILOT_API_KEY=... to ~/.aifiles',
+      }
+    );
+  }
+
   // Validate directories
   if (!config.BASE_DIRECTORY) {
     throw new ConfigurationError(

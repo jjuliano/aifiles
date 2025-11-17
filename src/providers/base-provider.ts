@@ -6,7 +6,7 @@ export interface LLMProvider {
 }
 
 export interface LLMConfig {
-  provider: 'openai' | 'grok' | 'deepseek' | 'ollama' | 'lmstudio';
+  provider: 'openai' | 'grok' | 'deepseek' | 'ollama' | 'lmstudio' | 'gemini' | 'copilot';
   apiKey?: string;
   baseUrl?: string;
   model?: string;

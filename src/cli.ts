@@ -2,6 +2,7 @@ import { green, lightCyan, red, blue, yellow, cyan } from "kolorist";
 import { intro, outro, select, spinner, text, isCancel } from "@clack/prompts";
 import { cli } from "cleye";
 import { description, version } from "../package.json";
+import { LockFileManager, LockMode } from "./lockfile.js";
 
 // Check for help flags before cleye processes them
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
@@ -28,6 +29,7 @@ ${green("AVAILABLE COMMANDS")}
   ${blue("aifiles-templates")}       Manage folder templates and organization rules
   ${blue("aifiles watch")}           Start daemon to monitor and auto-organize files
   ${blue("aifiles filemanager")}     Browse and manage all organized files
+  ${blue("aifiles analyze-deep")}    Deep file analysis with 4 focused LLM calls
   ${yellow("--unattended")}          Run filemanager/watch in automated mode
 
 ${green("COMMAND LINE FLAGS")}
@@ -37,6 +39,7 @@ ${green("COMMAND LINE FLAGS")}
   ${yellow("-v, --verbose")}           Show detailed output and AI analysis
   ${yellow("-b, --batch")}             Process multiple files (non-interactive)
   ${yellow("-u, --unattended")}        Skip all prompts and auto-organize
+  ${yellow("--single-call")}           Use single LLM call instead of multi-call analysis
 
 ${green("FILE TYPES SUPPORTED")}
   📄 Documents: PDF, DOCX, XLSX, TXT, MD, HTML
@@ -52,6 +55,8 @@ ${green("AI PROVIDERS SUPPORTED")}
   🐦 ${blue("Grok")}            xAI's Grok (API key required)
   🔍 ${blue("DeepSeek")}        Cost-effective alternative (API key required)
   💻 ${blue("LM Studio")}       Local server integration
+  💎 ${blue("Gemini")}          Google's Gemini 1.5 (API key required)
+  🤖 ${blue("Copilot")}         GitHub Copilot (API key required)
 
 ${green("CONFIGURATION")}
   Config file: ~/.aifiles/config
@@ -114,6 +119,10 @@ const argv = cli({
       alias: "u",
       description: "Skip all interactive prompts and auto-organize",
     },
+    singleCall: {
+      type: Boolean,
+      description: "Use single LLM call analysis instead of multi-call",
+    },
   },
 });
 
@@ -121,6 +130,29 @@ const argv = cli({
 await createDefaultConfig();
 
 const config = await getConfig();
+
+// Initialize and acquire lockfile to prevent multiple instances
+// Use different lockfiles for watch mode vs normal mode
+const isWatchMode = argv._.command === 'watch';
+const isFileManager = argv._.command === 'filemanager';
+const lockMode = isWatchMode
+  ? LockMode.WATCH
+  : isFileManager
+  ? LockMode.FILEMANAGER
+  : LockMode.NORMAL;
+
+const lockManager = new LockFileManager(lockMode);
+try {
+  const commandName = argv._.command || 'organize';
+  await lockManager.acquire(`aifiles ${commandName}`);
+  lockManager.setupCleanupHandlers();
+} catch (error) {
+  if (error instanceof Error) {
+    console.error(`\n${red("❌")} ${error.message}\n`);
+    process.exit(1);
+  }
+  throw error;
+}
 
 import {
   addTagsToFile,
@@ -138,6 +170,7 @@ import {
   separateFolderAndFile,
   parseJson,
   FileMetadataManager,
+  readFileContent,
 } from "./utils.js";
 import { ProviderFactory } from "./providers/provider-factory.js";
 import { LLMConfig } from "./providers/base-provider.js";
@@ -145,6 +178,7 @@ import { FileWatcher } from "./file-watcher.js";
 import { FolderTemplateManager } from "./folder-templates.js";
 import { FileDatabase } from "./database.js";
 import { FileManager } from "./file-manager.js";
+import { analyzeFileMultiCall, analyzeFileSingleCall, formatAnalysisResult } from "./multi-call-analyzer.js";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
@@ -200,6 +234,73 @@ if (argv._.command === 'filemanager') {
   }
 }
 
+// Handle analyze-deep command
+if (argv._.command === 'analyze-deep') {
+  const filePath = argv._.file;
+
+  if (!filePath) {
+    console.error(`${red("❌")} Please provide a file to analyze`);
+    console.log(`${yellow("Usage:")} aifiles analyze-deep <file-path>`);
+    console.log(`${yellow("Example:")} aifiles analyze-deep document.pdf`);
+    process.exit(1);
+  }
+
+  const resolvedPath = resolvePath(filePath);
+
+  if (!await fileExists(resolvedPath)) {
+    console.error(`${red("❌")} File not found: ${resolvedPath}`);
+    process.exit(1);
+  }
+
+  console.log(`${lightCyan("🔬 AIFiles Deep Analysis")}`);
+  console.log(`${blue("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")}`);
+  console.log(`Analyzing: ${path.basename(resolvedPath)}\n`);
+
+  try {
+    // Read full file content for maximum context
+    const fileContent = await readFileContent(resolvedPath);
+    const fileName = path.basename(resolvedPath);
+
+    // Detect MIME type (simplified)
+    const ext = path.extname(fileName).toLowerCase();
+    const mimeTypeMap: Record<string, string> = {
+      '.txt': 'text/plain',
+      '.md': 'text/markdown',
+      '.pdf': 'application/pdf',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+    };
+    const mimeType = mimeTypeMap[ext] || 'application/octet-stream';
+
+    // Load templates
+    const templateManager = new FolderTemplateManager();
+    const templates = await templateManager.loadTemplates();
+
+    // Perform multi-call analysis with template selection
+    const result = await analyzeFileMultiCall(config, fileName, fileContent, mimeType, templates);
+
+    // Display results
+    console.log(`\n${blue("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")}`);
+    console.log(formatAnalysisResult(result));
+    console.log(`${blue("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")}\n`);
+
+    console.log(`${green("✅")} Deep analysis complete!`);
+    const callCount = result.selectedTemplateId ? 5 : 4;
+    console.log(`${yellow("ℹ️")}  This used ${callCount} LLM calls for comprehensive understanding.\n`);
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`${red("❌")} Analysis failed: ${errorMessage}`);
+    process.exit(1);
+  }
+
+  process.exit(0);
+}
+
 // Watch daemon function
 export async function startWatchDaemon(): Promise<void> {
   console.log(`${lightCyan("👀 AIFiles Watch Daemon")}`);
@@ -249,52 +350,48 @@ export async function startWatchDaemon(): Promise<void> {
     // Auto-organize if enabled
     if (template.autoOrganize) {
       try {
-        console.log(`   ${green("🤖")} Auto-organizing...`);
+        console.log(`   ${green("🤖")} Auto-organizing with multi-call analysis...`);
 
-        // Process the file (similar to main file processing logic)
+        // Process the file using multi-call analysis
         const absolutePath = resolvePath(filePath);
         if (!await fileExists(absolutePath)) {
           console.log(`   ${red("✗")} File no longer exists: ${filePath}`);
           return;
         }
 
-        // Get AI analysis using configured or default prompt
-        const defaultWatchPrompt = `Analyze this file and provide:
-1. A descriptive title
-2. Main category
-3. 3-5 relevant tags
-4. Brief summary
+        // Read full file content for maximum context
+        const fileContent = await readFileContent(absolutePath);
+        const fileExt = path.extname(fileName);
 
-Return as JSON with keys: title, category, tags, summary.
+        // Detect MIME type
+        const mimeTypeMap: Record<string, string> = {
+          '.txt': 'text/plain',
+          '.md': 'text/markdown',
+          '.pdf': 'application/pdf',
+          '.doc': 'application/msword',
+          '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.gif': 'image/gif',
+          '.mp3': 'audio/mpeg',
+          '.wav': 'audio/wav',
+          '.mp4': 'video/mp4',
+          '.mov': 'video/quicktime',
+        };
+        const mimeType = mimeTypeMap[fileExt.toLowerCase()] || 'application/octet-stream';
 
-IMPORTANT:
-- Start your response with { and end with }
-- Include exactly these fields: title, category, tags, summary
-- Do not write an introduction or summary
-- Do not wrap the JSON in quotes or markdown code blocks
-- Return ONLY the JSON object, nothing else`;
+        // Perform multi-call analysis (without template selection for watch mode)
+        const analysis = await analyzeFileMultiCall(config, fileName, fileContent, mimeType);
 
-        const prompt = config.WATCH_MODE_PROMPT || defaultWatchPrompt;
-
-        const response = await generatePromptResponse(config, prompt);
-        if (!response) {
+        if (!analysis) {
           console.log(`   ${red("✗")} Failed to get AI analysis`);
           return;
         }
 
-        let analysis;
-        try {
-          analysis = await parseJson(response);
-        } catch (parseError) {
-          console.log(`   ${red("✗")} Failed to parse AI response as JSON`);
-          console.log(`   ${yellow("⚠")} Response: ${response.substring(0, 100)}...`);
-          return;
-        }
-
-        if (!analysis || typeof analysis !== 'object') {
-          console.log(`   ${red("✗")} Invalid AI response format`);
-          return;
-        }
+        console.log(`   ${green("✓")} Analysis complete: ${analysis.title}`);
+        console.log(`   ${green("✓")} Category: ${analysis.category}`);
+        console.log(`   ${green("✓")} Confidence: ${(analysis.confidence * 100).toFixed(0)}%`);
 
         // Apply template naming - use the full AI analysis for template replacement
         const folderName = await replacePromptKeys(
@@ -320,7 +417,8 @@ IMPORTANT:
         // Add tags and comments if supported
         if (config.ADD_FILE_TAGS && analysis.tags) {
           try {
-            await addTagsToFile(newFilePath, analysis.tags);
+            const tagsStr = Array.isArray(analysis.tags) ? analysis.tags.join(', ') : analysis.tags;
+            await addTagsToFile(newFilePath, tagsStr);
           } catch (error) {
             console.log(`   ${yellow("⚠")} Could not add tags: ${error}`);
           }
@@ -350,7 +448,7 @@ IMPORTANT:
             summary: analysis.summary || '',
             aiProvider: config.LLM_PROVIDER || 'ollama',
             aiModel: config.LLM_MODEL || 'default',
-            aiPrompt: prompt,
+            aiPrompt: 'multi-call-analysis',
             aiResponse: JSON.stringify(analysis),
           });
           console.log(`   ${green("📊")} Tracked in database (ID: ${fileId})`);
@@ -449,6 +547,27 @@ if (provider === 'openai') {
     throw new Error("Please set your DeepSeek API key in ~/.aifiles");
   }
   config.DEEPSEEK_API_KEY = apiKey;
+} else if (provider === 'gemini') {
+  const apiKey =
+    process.env.GEMINI_KEY ??
+    process.env.GEMINI_API_KEY ??
+    config.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("Please set your Gemini API key in ~/.aifiles");
+  }
+  config.GEMINI_API_KEY = apiKey;
+} else if (provider === 'copilot') {
+  const apiKey =
+    process.env.COPILOT_KEY ??
+    process.env.COPILOT_API_KEY ??
+    process.env.GITHUB_TOKEN ??
+    config.COPILOT_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("Please set your Copilot API key in ~/.aifiles");
+  }
+  config.COPILOT_API_KEY = apiKey;
 }
 
 // Create LLM provider instance
@@ -459,6 +578,10 @@ if (provider === 'openai') {
   apiKey = config.GROK_API_KEY;
 } else if (provider === 'deepseek') {
   apiKey = config.DEEPSEEK_API_KEY;
+} else if (provider === 'gemini') {
+  apiKey = config.GEMINI_API_KEY;
+} else if (provider === 'copilot') {
+  apiKey = config.COPILOT_API_KEY;
 }
 
 const llmConfig: LLMConfig = {
@@ -495,133 +618,129 @@ if (!exists) {
         console.log(`${green("✔")} File found: ${target}`);
       }
 
-      const { prompt, format, mainDir, fileExt, fileCase } = await getPrompt(
-        config,
-        target,
-        llmProvider,
-        Number(config.MAX_CONTENT_WORDS)
-      );
+      // Load templates for template selection
+      const templateManager = new FolderTemplateManager();
+      const templates = await templateManager.loadTemplates();
+
+      // Read full file content for maximum context
+      const absolutePath = resolvePath(target);
+      const fileContent = await readFileContent(absolutePath);
+      const fileName = path.basename(absolutePath);
+      const fileExt = path.extname(fileName);
+
+      // Detect MIME type
+      const mimeTypeMap: Record<string, string> = {
+        '.txt': 'text/plain',
+        '.md': 'text/markdown',
+        '.pdf': 'application/pdf',
+        '.doc': 'application/msword',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.mp3': 'audio/mpeg',
+        '.wav': 'audio/wav',
+        '.mp4': 'video/mp4',
+        '.mov': 'video/quicktime',
+        '.zip': 'application/zip',
+        '.tar': 'application/x-tar',
+        '.gz': 'application/gzip',
+      };
+      const mimeType = mimeTypeMap[fileExt.toLowerCase()] || 'application/octet-stream';
+
       detectingFiles.stop(`File ${target} ready for analysis!`);
 
       if (argv.flags.verbose) {
-        console.log(`${green("✔")} Generated organization prompt for file type`);
+        console.log(`${green("✔")} File loaded, starting multi-call analysis`);
+        console.log(`${green("✔")} Using ${templates.length} templates for selection`);
       }
 
       const s = spinner();
-      s.start("The AI is analyzing your file");
-      const message = await generatePromptResponse(config, prompt);
-      s.stop(`File analyzed!`);
-
-      if (!message) {
-        throw new Error('Failed to get AI response. Please check your LLM provider configuration.');
+      if (argv.flags.singleCall) {
+        s.start("The AI is performing single-call analysis...");
+      } else {
+        s.start("The AI is performing deep analysis (multiple focused calls)...");
       }
 
-      if (argv.flags.verbose) {
-        console.log(`${green("✔")} AI analysis completed`);
-      }
-
-      // Add progress indicator for parsing
-      const parseSpinner = spinner();
-      parseSpinner.start("Parsing AI response...");
-      
-      let promptObj;
+      let analysis;
       try {
-        promptObj = await parseJson(message);
-        parseSpinner.stop("Response parsed!");
-      } catch (parseError: any) {
-        parseSpinner.stop("Parsing failed!");
-        
-        // Write full debug info to error file
-        const errorLogPath = path.join(os.homedir(), '.aifiles', 'last-error.log');
-        const errorDetails = `
-${'='.repeat(100)}
-JSON PARSING ERROR - ${new Date().toISOString()}
-${'='.repeat(100)}
-
-PROMPT SENT TO LLM:
-${'-'.repeat(100)}
-${prompt}
-${'-'.repeat(100)}
-
-RAW LLM RESPONSE (Length: ${message.length} chars):
-${'-'.repeat(100)}
-${message}
-${'-'.repeat(100)}
-
-PARSE ERROR:
-${parseError.message}
-
-PARSE ERROR STACK:
-${parseError.stack || 'N/A'}
-
-${'='.repeat(100)}
-`;
-        
-        try {
-          await fs.writeFile(errorLogPath, errorDetails, 'utf8');
-        } catch (writeError) {
-          // Ignore write errors
-        }
-        
-        // Show summary in console
-        console.error('\n' + red('━'.repeat(80)));
-        console.error(red('❌ JSON PARSING ERROR'));
-        console.error(red('━'.repeat(80)));
-        console.error('\n' + yellow('PARSE ERROR: ') + parseError.message);
-        console.error('\n' + yellow('RESPONSE LENGTH: ') + message.length + ' characters');
-        console.error('\n' + yellow('RESPONSE PREVIEW (first 500 chars):'));
-        console.error(cyan('─'.repeat(80)));
-        console.error(message.substring(0, 500));
-        if (message.length > 500) {
-          console.error(cyan('\n... (truncated, see full response in error log) ...'));
-        }
-        console.error(cyan('─'.repeat(80)));
-        console.error('\n' + green('📄 Full debug info saved to: ') + errorLogPath);
-        console.error(red('━'.repeat(80)) + '\n');
-        throw new Error(`Failed to parse AI response as JSON: ${parseError.message}. See ${errorLogPath} for details.`);
+        // Perform analysis (single-call or multi-call based on flag)
+        analysis = argv.flags.singleCall
+          ? await analyzeFileSingleCall(config, fileName, fileContent, mimeType, templates)
+          : await analyzeFileMultiCall(config, fileName, fileContent, mimeType, templates);
+      } catch (analysisError) {
+        // Stop spinner and re-throw error so it can be handled by outer try-catch
+        s.stop(`Analysis failed`);
+        throw analysisError;
       }
 
-      if (!promptObj) {
-        throw new Error('Failed to parse AI response as JSON.');
+      s.stop(argv.flags.singleCall ? `Single-call analysis complete!` : `Deep analysis complete!`);
+
+      if (!analysis) {
+        throw new Error('Failed to get AI analysis. Please check your LLM provider configuration.');
       }
 
       if (argv.flags.verbose) {
-        console.log(`${green("✔")} JSON parsed successfully`);
+        console.log(`${green("✔")} Multi-call AI analysis completed`);
+        console.log(`${green("✔")} Title: ${analysis.title}`);
+        console.log(`${green("✔")} Category: ${analysis.category}`);
+        console.log(`${green("✔")} Tags: ${analysis.tags?.join(', ')}`);
+        if (analysis.selectedTemplateId) {
+          console.log(`${green("✔")} Selected Template: ${analysis.selectedTemplateName}`);
+        }
       }
 
-      // Validate required fields
-      const validateSpinner = spinner();
-      validateSpinner.start("Validating response fields...");
-
-      // Validate that we have some useful information
-      const hasTitle = promptObj.internal_file_title || promptObj.file_title || promptObj.title;
-      const hasCategory = promptObj.internal_file_category || promptObj.file_category || promptObj.category;
-      const hasSomeContent = Object.keys(promptObj).length > 0;
-
-      if (!hasSomeContent) {
-        validateSpinner.stop("Validation failed!");
-        throw new Error('AI response validation failed: No fields were populated in the response.\n\nThe AI did not provide any useful information about the file.');
+      // Determine which template to use based on AI selection
+      let selectedTemplate = templates.find(t => t.id === 'documents'); // default fallback
+      if (analysis.selectedTemplateId) {
+        const foundTemplate = templates.find(t => t.id === analysis.selectedTemplateId);
+        if (foundTemplate) {
+          selectedTemplate = foundTemplate;
+          if (argv.flags.verbose) {
+            console.log(`${green("✔")} Using AI-selected template: ${selectedTemplate.name}`);
+          }
+        }
+      } else if (templates.length > 0) {
+        selectedTemplate = templates[0];
+        if (argv.flags.verbose) {
+          console.log(`${yellow("⚠")} No template selected, using default: ${selectedTemplate.name}`);
+        }
       }
 
-      if (!hasTitle) {
-        validateSpinner.stop("Validation failed!");
-        throw new Error('AI response validation failed: Missing title information.\n\nThe response must include at least one of: internal_file_title, file_title, or title.');
-      }
+      // Convert analysis result to promptObj format for compatibility with existing code
+      const promptObj = {
+        title: analysis.title,
+        internal_file_title: analysis.title,
+        file_title: analysis.title,
+        category: analysis.category,
+        internal_file_category: analysis.category,
+        file_category: analysis.category,
+        tags: analysis.tags?.join(', ') || '',
+        internal_file_tags: analysis.tags?.join(', ') || '',
+        file_tags: analysis.tags?.join(', ') || '',
+        summary: analysis.summary,
+        internal_file_summary: analysis.summary,
+        file_summary: analysis.summary,
+        file_category_1: analysis.category,
+        file_category_2: analysis.subcategories?.[0] || '',
+        file_category_3: analysis.subcategories?.[1] || '',
+        file_date_created: new Date().toISOString().split('T')[0],
+        ...analysis, // Include all other fields
+      };
 
-      if (!hasCategory) {
-        validateSpinner.stop("Validation failed!");
-        throw new Error('AI response validation failed: Missing category information.\n\nThe response must include at least one of: internal_file_category, file_category, or category.');
-      }
-      
-      validateSpinner.stop("Fields validated!");
+      // Use the selected template's naming structure
+      const format = selectedTemplate?.namingStructure || '{file_category_1}/{file_title}';
 
-      if (argv.flags.verbose) {
-        console.log(`${green("✔")} Required fields validated`);
-      }
+      // Use template basePath if set and non-empty, otherwise use the file's current directory (watch path)
+      const mainDir = (selectedTemplate?.basePath && selectedTemplate.basePath.trim() !== '')
+        ? selectedTemplate.basePath
+        : path.dirname(absolutePath);
+      const fileCase = selectedTemplate?.fileNameCase || 'snake';
 
       const filenameSpinner = spinner();
-      filenameSpinner.start("Generating filename...");
-      
+      filenameSpinner.start("Generating organized filename...");
+
       let newFile = await replacePromptKeys(
         format,
         promptObj,
@@ -629,14 +748,15 @@ ${'='.repeat(100)}
         fileExt,
         fileCase
       );
-      
+
       filenameSpinner.stop("Filename generated!");
 
       if (argv.flags.verbose) {
-        console.log(`${green("✔")} New filename: ${newFile}`);
+        console.log(`${green("✔")} New path: ${newFile}`);
+        console.log(`${green("✔")} Using template: ${selectedTemplate?.name || 'default'}`);
       }
 
-      let [folderName, fileName] = separateFolderAndFile(newFile);
+      let [folderName, newFileName] = separateFolderAndFile(newFile);
 
       const displaySpinner = spinner();
       displaySpinner.start("Preparing file display...");
@@ -655,9 +775,9 @@ ${'='.repeat(100)}
       if (config.PROMPT_FOR_REVISION_NUMBER && !argv.flags.unattended) {
         const ver = await askForRevisionNumber();
         if (ver != null) {
-          [folderName, fileName] = separateFolderAndFile(newFile);
+          [folderName, newFileName] = separateFolderAndFile(newFile);
           const newPathWithRevision = resolvePath(
-            `${folderName}/${fileName}-v${ver}${fileExt}`
+            `${folderName}/${newFileName}-v${ver}${fileExt}`
           );
           await displayChanges(
             "File Organized!",
@@ -675,9 +795,9 @@ ${'='.repeat(100)}
       if (config.PROMPT_FOR_CUSTOM_CONTEXT && !argv.flags.unattended) {
         const context = await askForContext();
         if (context != null) {
-          [folderName, fileName] = separateFolderAndFile(newFile);
+          [folderName, newFileName] = separateFolderAndFile(newFile);
           const newPathWithContext = resolvePath(
-            `${folderName}/${context}-${fileName}${fileExt}`
+            `${folderName}/${context}-${newFileName}${fileExt}`
           );
           await displayChanges(
             "File Organized!",
@@ -775,7 +895,7 @@ ${'='.repeat(100)}
       }
 
       if (confirmed == "yes") {
-        [folderName, fileName] = separateFolderAndFile(newFile);
+        [folderName, newFileName] = separateFolderAndFile(newFile);
 
         if (argv.flags.dryRun) {
           console.log(`${lightCyan("🔍 Dry run:")} Would create backup directory`);
@@ -816,6 +936,7 @@ ${'='.repeat(100)}
           // Track file organization in database
           try {
             const db = new FileDatabase();
+            const prompt = 'multi-call-analysis';
             const fileId = db.recordFileOrganization({
               originalPath: resolvePath(target),
               currentPath: newFile,
