@@ -1,9 +1,6 @@
 <div align="center">
   <div>
-    <a href="https://asciinema.org/a/756387">
-      <img src="https://asciinema.org/a/756387.svg" alt="AIFiles Demo" width="600"/>
-    </a>
-    <p><em>Click the image above to view the interactive demo</em></p>
+    <script src="https://asciinema.org/a/w52cMmhaaeyw8OA9FlXe8QlSP.js" id="asciicast-w52cMmhaaeyw8OA9FlXe8QlSP" async="true"></script>
     <h1 align="center">🤖 AIFiles</h1>
   </div>
 	<p>A powerful CLI application that helps you organize and manage your files using AI.</p>
