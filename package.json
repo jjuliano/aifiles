@@ -1,6 +1,6 @@
 {
   "name": "aifiles",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Organize your files with AI - CLI tool with multiple LLM providers and auto-organize features",
   "keywords": [
     "ai",
