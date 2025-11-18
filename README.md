@@ -8,7 +8,7 @@
 src="https://img.shields.io/npm/v/aifiles" alt="Current version"></a>
 </div>
 
-⚠️ This app usescloud-based AAI models 🤖, which could raise privacy concerns. Please be cautious when sharing personal informatio, or use a local LLM.🔒
+⚠️ This app uses cloud-based AI models 🤖, which may raise privacy concerns. Please be cautious when sharing personal information, or use a local LLM for increased privacy. 🔒
 
 ## ✨ What's New in Version 2.0
 
